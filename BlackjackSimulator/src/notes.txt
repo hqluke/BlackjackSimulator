@@ -1,0 +1,7 @@
+- GUI handles displaying cards and giving them letters currently XXX BAAAD
+- Need to create dealer class to have an list of hands. pass in second card as hidden.
+- Might need to add insurance if dealers first card is an ace. Apparently this is an important part of 
+	blackjack strategy for card counters when the 10's are dense. It's half the original bet for insurance, 
+	then it pays double what you've paid in total. Bet $10, get $5 insurance, dealer gets blackjack, you 
+	receive $30.
+- Need starting screen to select num decks, starting money, & min bet.
