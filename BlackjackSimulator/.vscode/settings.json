@@ -3,8 +3,10 @@
   "java.project.outputPath": "bin",
   "java.configuration.runtimes": [
     {
-      "name": "JavaSE-21",
-      "path": "/usr/lib/jvm/java-21-openjdk-amd64",
+      // "name": "JavaSE-21",
+      // "path": "/usr/lib/jvm/java-21-openjdk-amd64",
+      "name": "JavaSE-24",
+      "path": "/usr/lib/jvm/jdk-24.0.2-oracle-x64",
       "default": true
     }
   ],

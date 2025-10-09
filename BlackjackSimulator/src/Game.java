@@ -1,4 +1,5 @@
 import java.util.*;
+
 public class Game {
     private Deck deck;
     private Player player;
@@ -6,21 +7,313 @@ public class Game {
     private GUI gui;
     private int numDecks;
     private double minimumBet;
+    private int runningCount;
+    private boolean roundInProgress;
     
+    public Game(GUI gui, int numDecks, double startingMoney, double minimumBet) {
+        this.gui = gui;
+        this.numDecks = numDecks;
+        this.minimumBet = minimumBet;
+        this.deck = new Deck(numDecks);
+        this.player = new Player(startingMoney);
+        this.dealer = new Dealer();
+        this.runningCount = 0;
+        this.roundInProgress = false;
+    }
     
-    //Select number of decks
+    // start a new round
+    public void startRound(double betAmount) {
+        if (roundInProgress) {
+            throw new IllegalStateException("Round already in progress");
+        }
+        
+        if (betAmount < minimumBet) {
+            throw new IllegalArgumentException("Bet below minimum: $" + minimumBet);
+        }
+        
+        if (!player.canAfford(betAmount)) {
+            throw new IllegalArgumentException("Insufficient funds");
+        }
+        
+        // check if deck needs reshuffling (less than 25% remaining)
+        if (deck.getDecksRemaining() < numDecks * 0.25) {
+            reshuffleDeck();
+        }
+        
+        // clear previous round
+        player.clearHands();
+        dealer.clearHand();
+        
+        // place bet and create initial hand
+        player.placeBet(betAmount);
+        
+        roundInProgress = true;
+        
+        // deal initial cards
+        dealInitialCards();
+    }
     
-    //Select starting money amount
+    // deal the initial 4 cards (2 to player, 2 to dealer)
+    private void dealInitialCards() {
+        // player first card
+        Card playerCard1 = drawCard();
+        player.addCardToHand(playerCard1, 0);
+        
+        // dealer first card (visible)
+        Card dealerCard1 = drawCard();
+        dealer.addCard(dealerCard1);
+        
+        // player second card
+        Card playerCard2 = drawCard();
+        player.addCardToHand(playerCard2, 0);
+        
+        // dealer second card (hidden)
+        Card dealerCard2 = drawCard();
+        dealer.addCard(dealerCard2);
+        dealer.hideSecondCard();
+        
+        // check for blackjacks
+        checkInitialBlackjacks();
+    }
     
-    //Select min bet	
+    // check if either player or dealer has blackjack on initial deal
+    private void checkInitialBlackjacks() {
+        Hand playerHand = player.getHand(0);
+        boolean playerBJ = playerHand.isBlackjack();
+        boolean dealerBJ = dealer.isBlackjack();
+        
+        if (playerBJ || dealerBJ) {
+            dealer.revealCards();
+            resolveBlackjacks(playerBJ, dealerBJ);
+            endRound();
+        }
+    }
     
-    //Set up deck
+    // handle blackjack scenarios
+    private void resolveBlackjacks(boolean playerBJ, boolean dealerBJ) {
+        Bet bet = player.getBet(0);
+        
+        if (playerBJ && dealerBJ) {
+            bet.setResult(Bet.BetResult.PUSH);
+        } else if (playerBJ) {
+            bet.setResult(Bet.BetResult.BLACKJACK);
+        } else {
+            bet.setResult(Bet.BetResult.LOSE);
+        }
+    }
     
-    //while(player.money >= 0){
-//    Give the first card to the player hand list, then dealer hand list, then player,
-    //then dealer (passing in hide card). Then display the cards using the GUI/animations
-//    -  Then allow the player to make their plays. Then have the dealer reveal their cards.
-//    - Determine winner
-//    - Payout bets if needed
-    //}
+    // player hits
+    public void hit(int handIndex) {
+        if (!roundInProgress) {
+            throw new IllegalStateException("No round in progress");
+        }
+        
+        Hand hand = player.getHand(handIndex);
+        if (hand == null) {
+            throw new IllegalArgumentException("Invalid hand index");
+        }
+        
+        Card card = drawCard();
+        player.addCardToHand(card, handIndex);
+        
+        // check if player busted
+        if (hand.isBust()) {
+            player.getBet(handIndex).setResult(Bet.BetResult.LOSE);
+            
+            // move to next hand or end if all hands done
+            int nextHandIndex = handIndex + 1;
+            if (nextHandIndex < player.getNumHands()) {
+                player.setCurrentHandIndex(nextHandIndex);
+            } else if (allHandsResolved()) {
+                endRound();
+            }
+        }
+    }
+    
+    // player stands 
+    public void stand(int handIndex) {
+        if (!roundInProgress) {
+            throw new IllegalStateException("No round in progress");
+        }
+        
+        // move to next hand if player has split
+        int nextHandIndex = handIndex + 1;
+        if (nextHandIndex < player.getNumHands()) {
+            player.setCurrentHandIndex(nextHandIndex);
+        } else {
+            // all player hands complete, dealer's turn
+            playDealerHand();
+            setHandResult();
+            endRound();
+        }
+    }
+    
+    // player doubles down
+    public void doubleDown(int handIndex) {
+        if (!roundInProgress) {
+            throw new IllegalStateException("No round in progress");
+        }
+        
+        player.doubleDown(handIndex);
+        
+        // draw exactly one more card
+        Card card = drawCard();
+        player.addCardToHand(card, handIndex);
+        
+        Hand hand = player.getHand(handIndex);
+        
+        // if busted, mark as loss
+        if (hand.isBust()) {
+            player.getBet(handIndex).setResult(Bet.BetResult.LOSE);
+        }
+        
+        // automatically stand after double down
+        stand(handIndex);
+    }
+    
+    // player splits
+    public void split(int handIndex) {
+        if (!roundInProgress) {
+            throw new IllegalStateException("No round in progress");
+        }
+        
+        player.split(handIndex);
+        
+        // deal one card to each of the split hands
+        Card card1 = drawCard();
+        player.addCardToHand(card1, handIndex);
+        
+        Card card2 = drawCard();
+        player.addCardToHand(card2, handIndex + 1);
+    }
+
+    // dealer plays their hand
+    private void playDealerHand() {
+        dealer.revealCards();
+        
+        // dealer hits until 17 or higher
+        while (dealer.mustHit()) {
+            Card card = drawCard();
+            dealer.addCard(card);
+        }
+    }
+    
+    // resolve all player hands against dealer
+    private void setHandResult() {
+        int dealerValue = dealer.getValue();
+        boolean dealerBust = dealer.isBust();
+        
+        for (int i = 0; i < player.getNumHands(); i++) {
+            Hand hand = player.getHand(i);
+            Bet bet = player.getBet(i);
+            
+            // skip if already resolved (e.g., busted)
+            if (bet.getResult() != Bet.BetResult.PENDING) {
+                continue;
+            }
+            
+            int playerValue = hand.getValue();
+            
+            if (dealerBust) {
+                bet.setResult(Bet.BetResult.WIN);
+            } else if (playerValue > dealerValue) {
+                bet.setResult(Bet.BetResult.WIN);
+            } else if (playerValue < dealerValue) {
+                bet.setResult(Bet.BetResult.LOSE);
+            } else {
+                bet.setResult(Bet.BetResult.PUSH);
+            }
+        }
+    }
+    
+    // check if all hands are resolved (busted or completed)
+    private boolean allHandsResolved() {
+        for (int i = 0; i < player.getNumHands(); i++) {
+            Hand hand = player.getHand(i);
+            Bet bet = player.getBet(i);
+            if (!hand.isBust() && bet.getResult() == Bet.BetResult.PENDING) {
+                return false;
+            }
+        }
+        return true;
+    }
+    
+    // end the round and pay out bets
+    private void endRound() {
+        payoutBets();
+        roundInProgress = false;
+    }
+    
+    // pay out all bets based on results
+    private void payoutBets() {
+        System.out.println("=== Paying out bets ===");
+        for (int i = 0; i < player.getBets().size(); i++) {
+            Bet bet = player.getBets().get(i);
+            double payout = bet.getPayout();
+            System.out.println("Hand " + (i+1) + ": Result=" + bet.getResult() + ", Bet=$" + bet.getAmount() + ", Payout=$" + payout);
+            if (payout > 0) {
+                player.addMoney(payout);
+            }
+        }
+        System.out.println("Player money after payout: $" + player.getMoney());
+    }
+    
+    // draw a card from the deck and update running count
+    private Card drawCard() {
+        if (deck.isEmpty()) {
+            reshuffleDeck();
+        }
+        
+        Card card = deck.drawCard();
+        runningCount += card.getCountValue();
+        return card;
+    }
+    
+    // reshuffle the deck
+    private void reshuffleDeck() {
+        deck.reset();
+        runningCount = 0;
+        
+        // alert the GUI about reshuffle
+        if (gui != null) {
+            javafx.application.Platform.runLater(() -> {
+                gui.showReshuffleAlert();
+            });
+        }
+    }
+    
+    // getters for game state
+    public Player getPlayer() {
+        return player;
+    }
+    
+    public Dealer getDealer() {
+        return dealer;
+    }
+    
+    public Deck getDeck() {
+        return deck;
+    }
+    
+    public int getRunningCount() {
+        return runningCount;
+    }
+    
+    public double getTrueCount() {
+        double decksRemaining = deck.getDecksRemaining();
+        return decksRemaining > 0 ? runningCount / decksRemaining : 0;
+    }
+    
+    public boolean isRoundInProgress() {
+        return roundInProgress;
+    }
+    
+    public double getMinimumBet() {
+        return minimumBet;
+    }
+    
+    // check if player has enough money to continue
+    public boolean canContinuePlaying() {
+        return player.getMoney() >= minimumBet;
+    }
 }

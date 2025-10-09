@@ -51,4 +51,11 @@ public class Deck {
     public void reset() {
         initializeDeck();
     }
+
+    public Card drawCard() {
+    if (cards.isEmpty()) {
+        throw new IllegalStateException("Deck is empty");
+    }
+    return cards.remove(cards.size() - 1);
+}
 }
