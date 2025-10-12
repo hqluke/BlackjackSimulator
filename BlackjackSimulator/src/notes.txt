@@ -1,7 +1,32 @@
-- GUI handles displaying cards and giving them letters currently XXX BAAAD
-- Need to create dealer class to have an list of hands. pass in second card as hidden.
-- Might need to add insurance if dealers first card is an ace. Apparently this is an important part of 
-	blackjack strategy for card counters when the 10's are dense. It's half the original bet for insurance, 
-	then it pays double what you've paid in total. Bet $10, get $5 insurance, dealer gets blackjack, you 
-	receive $30.
-- Need starting screen to select num decks, starting money, & min bet.
+- Be able to set AnimationSpeed in setupDialog
+
+- Need to make it so when you split and get blackjack, have it automatically stand for you on the current hand.
+
+- Add running count/true count with a checkbox toggle to show/hide.
+	- When a card is taken from the Deck add the cards rank to running count
+		- Don't add the hiddenCard's rank until it's been revealed.
+	- trueCount = runningCount / numDecks
+
+
+- Implement training mode with a checkbox toggle to enable/disable.
+	- If you make an unoptimal play, it will pop up telling you:
+		- The play you made was unoptimal. It will explain why.
+		- It will tell you the best play to make.
+		- It will have 2 buttons, one that lets you continue with your unoptimal play and one that changes your input to the optimal play
+
+
+- Implement insurance pop up when dealer's first card is an Ace.
+
+- Finalize layout:
+	- When you split hands it needs to shift the card container over. 
+	- Need to fix hitting animation for Hand 2 after splitting.
+	- Add more style to buttons
+	- Add 4 buttons next to deal. min bet, 2x, 3x, 4x min bet
+	- Add slider that changes custom bet input amount (still allow typing in custom bet)
+	- Keep custom bet between hands
+	- Move money to be underneath the betting section
+
+- Move setupDialog to it's own class ?
+
+- Add audio effects ?
+

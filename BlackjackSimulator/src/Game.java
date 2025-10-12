@@ -140,11 +140,6 @@ public class Game {
         int nextHandIndex = handIndex + 1;
         if (nextHandIndex < player.getNumHands()) {
             player.setCurrentHandIndex(nextHandIndex);
-        } else {
-            // all player hands complete, dealer's turn
-            playDealerHand();
-            setHandResult();
-            endRound();
         }
     }
     
@@ -185,17 +180,6 @@ public class Game {
         
         Card card2 = drawCard();
         player.addCardToHand(card2, handIndex + 1);
-    }
-
-    // dealer plays their hand
-    private void playDealerHand() {
-        dealer.revealCards();
-        
-        // dealer hits until 17 or higher
-        while (dealer.mustHit()) {
-            Card card = drawCard();
-            dealer.addCard(card);
-        }
     }
     
     // resolve all player hands against dealer
@@ -273,13 +257,6 @@ public class Game {
     private void reshuffleDeck() {
         deck.reset();
         runningCount = 0;
-        
-        // alert the GUI about reshuffle
-        if (gui != null) {
-            javafx.application.Platform.runLater(() -> {
-                gui.showReshuffleAlert();
-            });
-        }
     }
     
     // getters for game state
@@ -316,4 +293,38 @@ public class Game {
     public boolean canContinuePlaying() {
         return player.getMoney() >= minimumBet;
     }
+
+    public Card peekNextCard() {
+        // returns the next card that will be dealt without removing it from deck
+        return deck.peek();
+    }
+
+    public void dealerHit() {
+        // dealer draws a card
+        Card card = deck.drawCard();
+        dealer.addCard(card);
+        runningCount += card.getCountValue();
+    }
+
+    public boolean isPlayerDone() {
+        // checks if all player hands are finished
+        for (int i = 0; i < player.getNumHands(); i++) {
+            Hand hand = player.getHand(i);
+            Bet bet = player.getBet(i);
+            
+            // if any hand is still pending and not bust, player isn't done
+            if (bet.getResult() == Bet.BetResult.PENDING && !hand.isBust()) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    public void finalizeRound() {
+        setHandResult();
+        endRound();
+    }
+        
+
+
 }
