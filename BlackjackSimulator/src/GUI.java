@@ -1,4 +1,5 @@
 import javafx.application.Application;
+import javafx.application.Platform;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
@@ -13,6 +14,7 @@ import javafx.geometry.Rectangle2D;
 import javafx.animation.PauseTransition;
 import java.util.List;
 import javax.swing.*;
+import java.util.Optional;
 
 public class GUI extends Application {
     
@@ -379,7 +381,16 @@ public class GUI extends Application {
                 updateMoneyDisplay();
                 
                 if (!game.isRoundInProgress()) {
-                    // blackjack detected - reveal dealer and end
+                    if(dealerHand.isFirstCardAce() && !playerHand.isBlackjack()) {
+                        showMessage("Dealer has an Ace! Asking for Insurance...");
+                        Platform.runLater(() -> {
+                            createInsurancePopUp(null);
+                            
+                        
+                        });
+                    }
+
+                                        // blackjack detected - reveal dealer and end
                     dealerCards.getChildren().clear();
                     for (Card card : dealerCardsList) {
                         dealerCards.getChildren().add(createCard(getRankString(card), card.getSuit().getSymbol()));
@@ -387,12 +398,33 @@ public class GUI extends Application {
                     dealerValueLabel.setText("Value: " + dealerHand.getValue());
                     dealerValueLabel.setVisible(true);
                     endRound();
+
                 } else {
                     setActionButtonsVisible(true);
                     updateActionButtons();
                 }
             }
         );
+    }
+
+    private void createInsurancePopUp(Stage primStage) {
+        // Create a pop-up dialog for insurance
+        Dialog<ButtonType> dialog = new Dialog<>();
+        dialog.setTitle("Insurance");
+        dialog.setHeaderText("Dealer has an Ace! Would you like to place an insurance bet?");
+        
+        ButtonType yesButton = new ButtonType("Yes", ButtonBar.ButtonData.YES);
+        ButtonType noButton = new ButtonType("No", ButtonBar.ButtonData.NO);
+        dialog.getDialogPane().getButtonTypes().setAll(yesButton, noButton);
+        
+
+        // Show the dialog and wait for a response
+        Optional<ButtonType> result = dialog.showAndWait();
+        if (result.isPresent() && result.get() == yesButton) {
+            // Player chose to take insurance
+             game.placeInsurance();
+        }
+
     }
     
     private void handleHit() {

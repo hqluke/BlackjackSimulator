@@ -129,4 +129,10 @@ public class Player {
     public boolean canAfford(double amount) {
         return money >= amount;
     }
+
+    public void placeInsurance(double insuranceAmount) {
+        for (Bet bet : bets) {
+            bet.placeInsuranceBet(insuranceAmount);
+        }
+    }
 }

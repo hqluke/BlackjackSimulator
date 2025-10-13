@@ -16,6 +16,8 @@
 
 
 - Implement insurance pop up when dealer's first card is an Ace.
+	- Check if player has blackjack first, Don't call insurance pop up if so
+	- Call it before we check dealers blackjack
 
 - Finalize layout:
 	- When you split hands it needs to shift the card container over. 

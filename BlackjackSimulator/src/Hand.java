@@ -47,6 +47,10 @@ public class Hand {
     public boolean isBlackjack() {
         return cards.size() == 2 && getValue() == 21;
     }
+
+    public boolean isFirstCardAce() {
+        return !cards.isEmpty() && cards.get(0).getRank() == Card.Rank.ACE;
+    }   
     
     public boolean canSplit() {
         return cards.size() == 2 && 

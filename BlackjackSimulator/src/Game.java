@@ -88,6 +88,14 @@ public class Game {
             endRound();
         }
     }
+
+    public void placeInsurance() {
+
+        Bet originalBet = player.getBet(0);
+        double insuranceAmount = originalBet.getAmount() / 2.0;
+
+        player.placeInsurance(insuranceAmount);
+    }
     
     // handle blackjack scenarios
     private void resolveBlackjacks(boolean playerBJ, boolean dealerBJ) {

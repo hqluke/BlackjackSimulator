@@ -4,13 +4,15 @@ public class Bet {
     private boolean isDoubled;
     private boolean isSplit;
     private BetResult result;
-    
+    private double insuranceBet;
+
     public enum BetResult {
         PENDING, WIN, LOSE, PUSH, BLACKJACK
     }
     
     public Bet(double amount) {
         this.amount = amount;
+        this.insuranceBet = 0;
         this.isDoubled = false;
         this.isSplit = false;
         this.result = BetResult.PENDING;
@@ -61,5 +63,16 @@ public class Bet {
             default:
                 return 0;
         }
+    }
+
+    public void placeInsuranceBet(double insuranceAmount) {
+        if (insuranceAmount > amount / 2) {
+            throw new IllegalArgumentException("Insurance bet cannot exceed half of the original bet");
+        }
+        this.insuranceBet = insuranceAmount;
+    }
+
+    public double getInsuranceBet() {
+        return insuranceBet;
     }
 }
