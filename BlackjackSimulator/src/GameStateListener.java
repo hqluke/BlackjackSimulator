@@ -1,8 +1,5 @@
 import java.util.*;
 
-
-
-
 public interface GameStateListener {
     /**
      * Called when a new round starts after bet is placed
@@ -35,12 +32,6 @@ public interface GameStateListener {
      * @param dealer The dealer object
      */
     void onDealerTurn(Dealer dealer);
-    
-    /**
-     * Called when dealer draws a card
-     * @param dealer The dealer object
-     */
-    void onDealerCardDrawn(Dealer dealer);
     
     /**
      * Called when the round ends

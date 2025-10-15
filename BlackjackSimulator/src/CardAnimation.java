@@ -36,13 +36,13 @@ public class CardAnimation {
                                   Runnable onAllComplete) {
         
         // player card 1
-        dealCard(p1Rank, p1Suit, playerX, playerY, () -> {
+        animateCard(p1Rank, p1Suit, playerX, playerY, () -> {
             pause(animationSpeed, () -> {
                 // dealer card 1
-                dealCard(d1Rank, d1Suit, dealerX, dealerY, () -> {
+                animateCard(d1Rank, d1Suit, dealerX, dealerY, () -> {
                     pause(animationSpeed, () -> {
                         // player card 2
-                        dealCard(p2Rank, p2Suit, playerX + 117, playerY, () -> {
+                        animateCard(p2Rank, p2Suit, playerX + 117, playerY, () -> {
                             pause(animationSpeed, () -> {
                                 // dealer hidden card
                                 dealHiddenCard(dealerX + 117, dealerY, () -> {
@@ -67,7 +67,7 @@ public class CardAnimation {
     
     // animates a single card (used for hit/double)
     public void dealSingleCard(String rank, String suit, double targetX, double targetY, Runnable onComplete) {
-        dealCard(rank, suit, targetX, targetY, () -> {
+        animateCard(rank, suit, targetX, targetY, () -> {
             pause(animationSpeed / 2, () -> {
                 // clear animated card
                 gamePane.getChildren().removeIf(node ->
@@ -82,7 +82,7 @@ public class CardAnimation {
     }
     
     // animates a single card moving from deck to target
-    private void dealCard(String rank, String suit, double targetX, double targetY, Runnable onComplete) {
+    private void animateCard(String rank, String suit, double targetX, double targetY, Runnable onComplete) {
         StackPane card = gui.createCard(rank, suit);
         card.setLayoutX(deckX);
         card.setLayoutY(deckY);

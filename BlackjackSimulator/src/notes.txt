@@ -1,11 +1,6 @@
-- Be able to set AnimationSpeed in setupDialog
 
-- Need to make it so when you split and get blackjack, have it automatically stand for you on the current hand.
 
 - Add running count/true count with a checkbox toggle to show/hide.
-	- When a card is taken from the Deck add the cards rank to running count
-		- Don't add the hiddenCard's rank until it's been revealed.
-	- trueCount = runningCount / numDecks
 
 
 - Implement training mode with a checkbox toggle to enable/disable.
@@ -27,8 +22,6 @@
 	- Add slider that changes custom bet input amount (still allow typing in custom bet)
 	- Keep custom bet between hands
 	- Move money to be underneath the betting section
-
-- Move setupDialog to it's own class ?
 
 - Add audio effects ?
 
