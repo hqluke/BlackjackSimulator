@@ -8,6 +8,8 @@ public class Game {
     private int runningCount;
     private boolean roundInProgress;
     private Card dealerHiddenCard = null;
+    private boolean insuranceOffered = false;
+    private boolean insuranceResolved = false;
     
     public Game(int numDecks, double startingMoney, double minimumBet) {
         this.numDecks = numDecks;
@@ -43,6 +45,8 @@ public class Game {
         // clear previous round
         player.clearHands();
         dealer.clearHand();
+        insuranceOffered = false;
+        insuranceResolved = false;
         
         // place bet and create initial hand
         player.placeBet(betAmount);
@@ -60,8 +64,6 @@ public class Game {
         
         // deal initial cards
         dealInitialCards();
-        
-        
     }
     
     // deal the initial 4 cards (2 to player, 2 to dealer)
@@ -89,13 +91,18 @@ public class Game {
         }
     }
     
-    // called by GUI after initial deal animation completes
-    public void checkForBlackjacks() {
+    // called by GUI after initial deal animation completes, or after insurance decision
+    public void checkForBlackjacks(boolean skipInsuranceCheck) {
         Hand playerHand = player.getHand(0);
         boolean playerBJ = playerHand.isBlackjack();
+        
+        // check if dealer's first card is an ace (unless we're resuming after insurance)
+        if (!skipInsuranceCheck && checkFirstCardAce()) {
+            // insurance offer will be shown, return and wait for player response
+            return;
+        }
+        
         boolean dealerBJ = dealer.isBlackjack();
-
-        checkFirstCardAce();
         
         if (playerBJ || dealerBJ) {
             dealer.revealCards();
@@ -263,9 +270,9 @@ public class Game {
     public void startDealerPlay() {
         dealer.revealCards();
         if (dealerHiddenCard != null) {
-        runningCount += dealerHiddenCard.getCountValue();
-        dealerHiddenCard = null;
-    }
+            runningCount += dealerHiddenCard.getCountValue();
+            dealerHiddenCard = null;
+        }
         // GUI will handle reveal animation and then call dealerDrawCards
     }
     
@@ -326,13 +333,20 @@ public class Game {
         for (int i = 0; i < player.getBets().size(); i++) {
             Bet bet = player.getBets().get(i);
             double payout = bet.getPayout();
-            if (payout > 0 && !bet.isInsurancePlaced()) {
-                player.addMoney(payout);
-            }
-
-            if( bet.isInsurancePlaced() && dealer.isBlackjack()) {
+            
+            if (bet.isInsurancePlaced() && dealer.isBlackjack()) {
                 // Insurance pays 2:1
-                player.addMoney(payout + bet.getInsuranceBet());
+                // loses 1/2 of main bet in total
+                player.addMoney(payout);
+                player.addMoney(bet.getInsuranceBet());
+            } else if (bet.isInsurancePlaced() && !dealer.isBlackjack()) {
+                if (payout > 0) {
+                    player.addMoney(payout);
+                }
+            } else {
+                if (payout > 0) {
+                    player.addMoney(payout);
+                }
             }
         }
         
@@ -371,27 +385,31 @@ public class Game {
     public boolean checkFirstCardAce() {
         Hand dealerHand = dealer.getHand();
         boolean temp = dealerHand != null && dealerHand.isFirstCardAce();
-        if(temp && listener != null) {
+        if (temp && !insuranceOffered && listener != null) {
+            insuranceOffered = true;
             listener.onInsuranceOffer();
         }
         return temp;
     }
 
     public void acceptedInsurance(boolean bool) {
-       if (bool && checkFirstCardAce()) {
-           placeInsurance(0);
-            
-       }
+        if (bool && insuranceOffered && !insuranceResolved) {
+            placeInsurance(0);
+        }
+        insuranceResolved = true;
+        checkForBlackjacks(true);  // skip insurance check, go straight to blackjack check
     }
 
-    // todo: implement insurance betting
     private void placeInsurance(int index) {
-
         Bet originalBet = player.getBet(index);
         double insuranceAmount = originalBet.getAmount() / 2;
         
-        if(index == 0){
+        if (index == 0) {
             player.placeInsurance(insuranceAmount, index);
+            // GUi updates money display
+            if (listener != null) {
+                listener.onMoneyChanged(player.getMoney());
+            }
         }
     }
     

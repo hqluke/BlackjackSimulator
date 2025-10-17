@@ -131,13 +131,16 @@ public class Player {
     }
 
     public void placeInsurance(double insuranceAmount, int index) {
-        
         Bet bet = bets.get(index);
         if (bet == null) {
             throw new IllegalArgumentException("No bet found for hand index");
         }
 
-        bet.placeInsuranceBet(insuranceAmount);
+        if (insuranceAmount > money) {
+            throw new IllegalArgumentException("Insufficient funds for insurance");
+        }
 
+        money -= insuranceAmount;
+        bet.placeInsuranceBet(insuranceAmount);
     }
 }

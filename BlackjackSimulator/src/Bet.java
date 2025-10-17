@@ -74,7 +74,7 @@ public class Bet {
     }
 
     public double getInsuranceBet() {
-        return insuranceBet;
+        return insuranceBet * 2;
     }
 
     public boolean isInsurancePlaced() {

@@ -9,11 +9,6 @@
 		- It will tell you the best play to make.
 		- It will have 2 buttons, one that lets you continue with your unoptimal play and one that changes your input to the optimal play
 
-
-- Implement insurance pop up when dealer's first card is an Ace.
-	- Check if player has blackjack first, Don't call insurance pop up if so
-	- Call it before we check dealers blackjack
-
 - Finalize layout:
 	- When you split hands it needs to shift the card container over. 
 	- Need to fix hitting animation for Hand 2 after splitting.
@@ -24,4 +19,6 @@
 	- Move money to be underneath the betting section
 
 - Add audio effects ?
+
+- Add side bets ?!
 

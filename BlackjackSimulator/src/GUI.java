@@ -412,7 +412,7 @@ public class GUI extends Application implements GameStateListener {
                 updateMoneyDisplay();
                 
                 // check for blackjacks
-                game.checkForBlackjacks();
+                game.checkForBlackjacks(false);
                 
             }
         );
@@ -778,33 +778,14 @@ public class GUI extends Application implements GameStateListener {
 
     @Override
     public void onInsuranceOffer() {
-        boolean accepted = createInsurancePopUp();
-        if (accepted) {
-            game.acceptedInsurance(true);
-            showMessage("Insurance placed.");
-        } else {
-            showMessage("Insurance declined.");
+    InsuranceDialog.show(
+        () -> {
+            game.acceptedInsurance(true); 
+        },
+        () -> {
+            game.acceptedInsurance(false); 
         }
-    }
-
-    // TODO implement insurance betting probably in a new class
-    private boolean createInsurancePopUp() {
-        Dialog<ButtonType> dialog = new Dialog<>();
-        dialog.setTitle("Insurance");
-        dialog.setHeaderText("Dealer has an Ace! Would you like to place an insurance bet?");
-
-        ButtonType yesButton = new ButtonType("Yes", ButtonBar.ButtonData.YES);
-        ButtonType noButton = new ButtonType("No", ButtonBar.ButtonData.NO);
-        dialog.getDialogPane().getButtonTypes().setAll(yesButton, noButton);
-
-        // ✅ Add some basic content (even empty Label works)
-        dialog.getDialogPane().setContent(new Label("Choose an option below:"));
-
-        // ✅ Make sure the dialog has an owner window (optional but good practice)
-        dialog.initOwner(root.getScene().getWindow());
-
-        Optional<ButtonType> result = dialog.showAndWait();
-        return result.isPresent() && result.get() == yesButton;
+    );
     }
 
     public StackPane createCard(String rank, String suit) {
