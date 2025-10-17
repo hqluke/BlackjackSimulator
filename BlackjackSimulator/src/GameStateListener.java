@@ -59,4 +59,9 @@ public interface GameStateListener {
      * @param message Error message to display
      */
     void onError(String message);
+
+    /**
+     * Called when insurance is offered to the player
+     */
+    void onInsuranceOffer();
 }

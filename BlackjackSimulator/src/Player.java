@@ -130,9 +130,14 @@ public class Player {
         return money >= amount;
     }
 
-    public void placeInsurance(double insuranceAmount) {
-        for (Bet bet : bets) {
-            bet.placeInsuranceBet(insuranceAmount);
+    public void placeInsurance(double insuranceAmount, int index) {
+        
+        Bet bet = bets.get(index);
+        if (bet == null) {
+            throw new IllegalArgumentException("No bet found for hand index");
         }
+
+        bet.placeInsuranceBet(insuranceAmount);
+
     }
 }

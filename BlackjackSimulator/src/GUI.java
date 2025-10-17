@@ -413,6 +413,7 @@ public class GUI extends Application implements GameStateListener {
                 
                 // check for blackjacks
                 game.checkForBlackjacks();
+                
             }
         );
     }
@@ -775,26 +776,36 @@ public class GUI extends Application implements GameStateListener {
         }
     }
 
+    @Override
+    public void onInsuranceOffer() {
+        boolean accepted = createInsurancePopUp();
+        if (accepted) {
+            game.acceptedInsurance(true);
+            showMessage("Insurance placed.");
+        } else {
+            showMessage("Insurance declined.");
+        }
+    }
+
     // TODO implement insurance betting probably in a new class
-    // private void createInsurancePopUp(Stage primStage) {
-    //     // Create a pop-up dialog for insurance
-    //     Dialog<ButtonType> dialog = new Dialog<>();
-    //     dialog.setTitle("Insurance");
-    //     dialog.setHeaderText("Dealer has an Ace! Would you like to place an insurance bet?");
-        
-    //     ButtonType yesButton = new ButtonType("Yes", ButtonBar.ButtonData.YES);
-    //     ButtonType noButton = new ButtonType("No", ButtonBar.ButtonData.NO);
-    //     dialog.getDialogPane().getButtonTypes().setAll(yesButton, noButton);
-        
+    private boolean createInsurancePopUp() {
+        Dialog<ButtonType> dialog = new Dialog<>();
+        dialog.setTitle("Insurance");
+        dialog.setHeaderText("Dealer has an Ace! Would you like to place an insurance bet?");
 
-    //     // Show the dialog and wait for a response
-    //     Optional<ButtonType> result = dialog.showAndWait();
-    //     if (result.isPresent() && result.get() == yesButton) {
-    //         // Player chose to take insurance
-    //          game.placeInsurance();
-    //     }
+        ButtonType yesButton = new ButtonType("Yes", ButtonBar.ButtonData.YES);
+        ButtonType noButton = new ButtonType("No", ButtonBar.ButtonData.NO);
+        dialog.getDialogPane().getButtonTypes().setAll(yesButton, noButton);
 
-    // }
+        // ✅ Add some basic content (even empty Label works)
+        dialog.getDialogPane().setContent(new Label("Choose an option below:"));
+
+        // ✅ Make sure the dialog has an owner window (optional but good practice)
+        dialog.initOwner(root.getScene().getWindow());
+
+        Optional<ButtonType> result = dialog.showAndWait();
+        return result.isPresent() && result.get() == yesButton;
+    }
 
     public StackPane createCard(String rank, String suit) {
         StackPane card = new StackPane();

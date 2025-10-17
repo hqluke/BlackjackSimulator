@@ -3,6 +3,7 @@ public class Bet {
     private double amount;
     private boolean isDoubled;
     private boolean isSplit;
+    private boolean isInsurancePlaced;
     private BetResult result;
     private double insuranceBet;
 
@@ -53,7 +54,7 @@ public class Bet {
     public double getPayout() {
         switch (result) {
             case WIN:
-                return amount * 2;
+                return (amount * 2);
             case BLACKJACK:
                 return amount * 2.5;
             case PUSH:
@@ -74,5 +75,9 @@ public class Bet {
 
     public double getInsuranceBet() {
         return insuranceBet;
+    }
+
+    public boolean isInsurancePlaced() {
+        return insuranceBet > 0;
     }
 }

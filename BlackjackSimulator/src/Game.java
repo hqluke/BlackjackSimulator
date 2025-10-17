@@ -60,6 +60,8 @@ public class Game {
         
         // deal initial cards
         dealInitialCards();
+        
+        
     }
     
     // deal the initial 4 cards (2 to player, 2 to dealer)
@@ -92,6 +94,8 @@ public class Game {
         Hand playerHand = player.getHand(0);
         boolean playerBJ = playerHand.isBlackjack();
         boolean dealerBJ = dealer.isBlackjack();
+
+        checkFirstCardAce();
         
         if (playerBJ || dealerBJ) {
             dealer.revealCards();
@@ -322,8 +326,13 @@ public class Game {
         for (int i = 0; i < player.getBets().size(); i++) {
             Bet bet = player.getBets().get(i);
             double payout = bet.getPayout();
-            if (payout > 0) {
+            if (payout > 0 && !bet.isInsurancePlaced()) {
                 player.addMoney(payout);
+            }
+
+            if( bet.isInsurancePlaced() && dealer.isBlackjack()) {
+                // Insurance pays 2:1
+                player.addMoney(payout + bet.getInsuranceBet());
             }
         }
         
@@ -358,15 +367,33 @@ public class Game {
             listener.onError(message);
         }
     }
+    
+    public boolean checkFirstCardAce() {
+        Hand dealerHand = dealer.getHand();
+        boolean temp = dealerHand != null && dealerHand.isFirstCardAce();
+        if(temp && listener != null) {
+            listener.onInsuranceOffer();
+        }
+        return temp;
+    }
+
+    public void acceptedInsurance(boolean bool) {
+       if (bool && checkFirstCardAce()) {
+           placeInsurance(0);
+            
+       }
+    }
 
     // todo: implement insurance betting
-    // private void placeInsurance() {
+    private void placeInsurance(int index) {
 
-    //     Bet originalBet = player.getBet(0);
-    //     double insuranceAmount = originalBet.getAmount() / 2.0;
-
-    //     player.placeInsurance(insuranceAmount);
-    // }
+        Bet originalBet = player.getBet(index);
+        double insuranceAmount = originalBet.getAmount() / 2;
+        
+        if(index == 0){
+            player.placeInsurance(insuranceAmount, index);
+        }
+    }
     
     // getters
     public Player getPlayer() { return player; }
