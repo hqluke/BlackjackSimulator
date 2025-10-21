@@ -1,4 +1,4 @@
-public class Game {
+public class Game implements GUIEventListener {
     private Deck deck;
     private Player player;
     private Dealer dealer;
@@ -10,6 +10,7 @@ public class Game {
     private Card dealerHiddenCard = null;
     private boolean insuranceOffered = false;
     private boolean insuranceResolved = false;
+    private int customBetAmount = (int)minimumBet;
     
     public Game(int numDecks, double startingMoney, double minimumBet) {
         this.numDecks = numDecks;
@@ -90,7 +91,12 @@ public class Game {
             listener.onInitialDeal(player, dealer);
         }
     }
-    
+
+    @Override
+    public void onInitialDealComplete(){
+        checkForBlackjacks(false);
+    }
+
     // called by GUI after initial deal animation completes, or after insurance decision
     public void checkForBlackjacks(boolean skipInsuranceCheck) {
         Hand playerHand = player.getHand(0);
@@ -149,9 +155,9 @@ public class Game {
         
         // GUI will handle animation and call completeHit
     }
-    
-    // called by GUI after hit animation completes
-    public void completeHit(int handIndex) {
+
+    @Override
+    public void onHitAnimationComplete(int handIndex) {
         Card card = drawCard();
         player.addCardToHand(card, handIndex);
         Hand hand = player.getHand(handIndex);
@@ -161,8 +167,25 @@ public class Game {
             player.getBet(handIndex).setResult(Bet.BetResult.LOSE);
             handleHandCompletion(handIndex);
         }
-        // GUI will update display and buttons
+        // Notify GUI to update display
+        if (listener != null) {
+            listener.onPlayerHandUpdated(player, handIndex);
+        }
     }
+    
+    // // called by GUI after hit animation completes
+    // public void completeHit(int handIndex) {
+    //     Card card = drawCard();
+    //     player.addCardToHand(card, handIndex);
+    //     Hand hand = player.getHand(handIndex);
+        
+    //     // check if player busted
+    //     if (hand.isBust()) {
+    //         player.getBet(handIndex).setResult(Bet.BetResult.LOSE);
+    //         handleHandCompletion(handIndex);
+    //     }
+    //     // GUI will update display and buttons
+    // }
     
     // player stands 
     public void stand(int handIndex) {
@@ -188,9 +211,9 @@ public class Game {
             notifyError(e.getMessage());
         }
     }
-    
-    // called by GUI after double animation completes
-    public void completeDouble(int handIndex) {
+
+    @Override
+    public void onDoubleAnimationComplete(int handIndex) {
         Card card = drawCard();
         player.addCardToHand(card, handIndex);
         Hand hand = player.getHand(handIndex);
@@ -203,6 +226,21 @@ public class Game {
         // automatically complete this hand
         handleHandCompletion(handIndex);
     }
+    
+    // called by GUI after double animation completes
+    // public void completeDouble(int handIndex) {
+    //     Card card = drawCard();
+    //     player.addCardToHand(card, handIndex);
+    //     Hand hand = player.getHand(handIndex);
+        
+    //     // if busted, mark as loss
+    //     if (hand.isBust()) {
+    //         player.getBet(handIndex).setResult(Bet.BetResult.LOSE);
+    //     }
+        
+    //     // automatically complete this hand
+    //     handleHandCompletion(handIndex);
+    // }
     
     // player splits
     public void split(int handIndex) {
@@ -275,6 +313,18 @@ public class Game {
         }
         // GUI will handle reveal animation and then call dealerDrawCards
     }
+
+    @Override
+    public void onDealerRevealComplete() {
+        if (dealerHiddenCard != null) {
+            runningCount += dealerHiddenCard.getCountValue();
+            dealerHiddenCard = null;
+        }
+        // Notify GUI it can start drawing dealer cards
+        if (listener != null) {
+            listener.onDealerDrawing(dealer);
+        }
+    }
     
     // dealer draws cards - called by GUI after reveal
     public void dealerDrawCards() {
@@ -285,6 +335,13 @@ public class Game {
     public void dealerHit() {
         Card card = drawCard();
         dealer.addCard(card);
+    }
+
+    @Override
+    public void onDealerHitAnimationComplete() {
+        Card card = drawCard();
+        dealer.addCard(card);
+        // GUI will check if dealer needs another card
     }
     
     // called by GUI when dealer is done
@@ -336,8 +393,7 @@ public class Game {
             
             if (bet.isInsurancePlaced() && dealer.isBlackjack()) {
                 // Insurance pays 2:1
-                // loses 1/2 of main bet in total
-                player.addMoney(payout);
+                // loses 1/2 of main bet in total (bet $10, insurance $5, wins $10 from insurance, loses $10 main = net -$5)
                 player.addMoney(bet.getInsuranceBet());
             } else if (bet.isInsurancePlaced() && !dealer.isBlackjack()) {
                 if (payout > 0) {
@@ -412,7 +468,11 @@ public class Game {
             }
         }
     }
-    
+
+    public void setCustomBetAmount(int amount) {
+        this.customBetAmount = amount;
+    }
+
     // getters
     public Player getPlayer() { return player; }
     public Dealer getDealer() { return dealer; }
@@ -426,4 +486,5 @@ public class Game {
     public double getMinimumBet() { return minimumBet; }
     public boolean canContinuePlaying() { return player.getMoney() >= minimumBet; }
     public Card peekNextCard() { return deck.peek(); }
+    public int getCustomBetAmount() { return customBetAmount; }
 }

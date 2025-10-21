@@ -12,7 +12,6 @@ import javafx.stage.Screen;
 import javafx.geometry.Rectangle2D;
 import javafx.animation.PauseTransition;
 import java.util.List;
-import java.util.Optional;
 
 public class GUI extends Application implements GameStateListener {
     
@@ -41,6 +40,8 @@ public class GUI extends Application implements GameStateListener {
     private double DEALER_Y;
     private double PLAYER_Y;
 
+    private GUIEventListener gameEventListener;
+
     @Override
     public void start(Stage primaryStage) {
         root = new Pane();
@@ -65,6 +66,7 @@ public class GUI extends Application implements GameStateListener {
     private void initializeGame(Stage primaryStage, SetupDialog.GameConfig config) {
         game = new Game(config.numDecks, config.startingMoney, config.minimumBet);
         game.setGameStateListener(this);
+        gameEventListener = game;
         
         setupUI();
 
@@ -263,7 +265,9 @@ public class GUI extends Application implements GameStateListener {
                 targetX,
                 targetY,
                 () -> {
-                    game.completeHit(handIndex);
+                    if (gameEventListener != null) {
+                        gameEventListener.onHitAnimationComplete(handIndex);
+                    }
                     updateDisplay();
                     
                     if (game.isRoundInProgress()) {
@@ -318,7 +322,9 @@ public class GUI extends Application implements GameStateListener {
                 targetY,
                 () -> {
                     // after animation: actually add the card
-                    game.completeDouble(handIndex);
+                    if (gameEventListener != null) {
+                        gameEventListener.onDoubleAnimationComplete(handIndex);
+                    }
                     updateDisplay();
                     setActionButtonsDisabled(false);
                     
@@ -354,6 +360,7 @@ public class GUI extends Application implements GameStateListener {
             
             int betAmount = Integer.parseInt(betText);
             game.startRound(betAmount);
+            game.setCustomBetAmount(betAmount);
             
         } catch (NumberFormatException ex) {
             showMessage("Invalid bet amount!");
@@ -410,10 +417,10 @@ public class GUI extends Application implements GameStateListener {
                 playerValueLabel.setText("Value: " + playerHand.getValue());
                 playerValueLabel.setVisible(true);
                 updateMoneyDisplay();
-                
-                // check for blackjacks
-                game.checkForBlackjacks(false);
-                
+
+                if (gameEventListener != null) {
+                gameEventListener.onInitialDealComplete();
+                }
             }
         );
     }
@@ -441,7 +448,7 @@ public class GUI extends Application implements GameStateListener {
         updateDisplay();
         
         if (!game.isRoundInProgress()) {
-            showRoundResults(game.getPlayer().getBets());
+            showRoundResults(player.getBets());
         } else {
             setActionButtonsVisible(true);
             updateActionButtons(handIndex);
@@ -463,14 +470,24 @@ public class GUI extends Application implements GameStateListener {
         
         // short pause, then start dealer drawing cards
         PauseTransition pause = new PauseTransition(javafx.util.Duration.millis(cardAnimation.getAnimationSpeed() * 2));
-        pause.setOnFinished(e -> animateDealerDrawing());
+        pause.setOnFinished(e -> {
+            if (gameEventListener != null) {
+                gameEventListener.onDealerRevealComplete();
+            }
+        });
         pause.play();
     }
-    
-    private void animateDealerDrawing() {
-        Hand dealerHand = game.getDealer().getHand();
-        
-        if (game.getDealer().mustHit() && !dealerHand.isBust()) {
+
+    @Override
+    public void onDealerDrawing(Dealer dealer) {
+        // Called by game after dealer reveal is complete
+        animateDealerDrawing(dealer);
+    }
+
+    private void animateDealerDrawing(Dealer dealer) {
+        Hand dealerHand = dealer.getHand();
+
+        if (dealer.mustHit() && !dealerHand.isBust()) {
             Card nextCard = game.peekNextCard();
             
             if (nextCard == null) {
@@ -496,9 +513,9 @@ public class GUI extends Application implements GameStateListener {
                     dealerValueLabel.setText("Value: " + game.getDealer().getValue());
                     
                     // check if dealer needs more cards
-                    if (game.getDealer().mustHit() && !game.getDealer().isBust()) {
+                    if (dealer.mustHit() && !dealer.isBust()) {
                         PauseTransition pause = new PauseTransition(javafx.util.Duration.millis(cardAnimation.getAnimationSpeed()));
-                        pause.setOnFinished(e -> animateDealerDrawing());
+                        pause.setOnFinished(e -> animateDealerDrawing(dealer));
                         pause.play();
                     } else {
                         // dealer done
@@ -519,7 +536,7 @@ public class GUI extends Application implements GameStateListener {
         setActionButtonsVisible(false);
         updateMoneyDisplay();
         
-        betField.setText(String.valueOf((int)game.getMinimumBet()));
+        betField.setText(String.valueOf((int)game.getCustomBetAmount()));
         
         if (!game.canContinuePlaying()) {
             showMessage("Game Over! Out of money.");

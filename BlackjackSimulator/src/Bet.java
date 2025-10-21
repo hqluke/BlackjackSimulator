@@ -3,7 +3,6 @@ public class Bet {
     private double amount;
     private boolean isDoubled;
     private boolean isSplit;
-    private boolean isInsurancePlaced;
     private BetResult result;
     private double insuranceBet;
 

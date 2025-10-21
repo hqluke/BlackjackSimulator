@@ -1,4 +1,4 @@
-
+- Add more listeners to remove tight coupling before GUI and Game. (ie. stop calling game objects in GUI)
 
 - Add running count/true count with a checkbox toggle to show/hide.
 
@@ -15,7 +15,6 @@
 	- Add more style to buttons
 	- Add 4 buttons next to deal. min bet, 2x, 3x, 4x min bet
 	- Add slider that changes custom bet input amount (still allow typing in custom bet)
-	- Keep custom bet between hands
 	- Move money to be underneath the betting section
 
 - Add audio effects ?

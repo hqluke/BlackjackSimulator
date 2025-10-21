@@ -34,6 +34,11 @@ public interface GameStateListener {
     void onDealerTurn(Dealer dealer);
     
     /**
+     * Called when dealer should start drawing cards
+     */
+    void onDealerDrawing(Dealer dealer);
+    
+    /**
      * Called when the round ends
      * @param player The player object with final state
      * @param dealer The dealer object with final state
