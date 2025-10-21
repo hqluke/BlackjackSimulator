@@ -2,6 +2,18 @@ import java.util.*;
 
 public interface GameStateListener {
     /**
+     * Called when game is created with initial state
+     * @param runningCount Initial running count
+     * @param trueCount Initial true count
+     * @param playerMoney Starting player money
+     * @param numDecks Number of decks in the shoe
+     * @param cardsRemaining Cards remaining in deck
+     * @param minimumBet Minimum bet amount
+     */
+    void onGameCreated(int runningCount, double trueCount, double playerMoney, 
+                       int numDecks, int cardsRemaining, double minimumBet);
+    
+    /**
      * Called when a new round starts after bet is placed
      */
     void onRoundStart();

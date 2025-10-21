@@ -18,7 +18,7 @@ public class Player {
         }
         money -= amount;
         bets.add(new Bet(amount));
-        hands.add(new Hand(false));
+        hands.add(new Hand());
     }
     
     //when called pass in currentHandIndex
@@ -60,7 +60,7 @@ public class Player {
         money -= originalBet.getAmount();
         
         //creating a new hand and bet
-        Hand newHand = new Hand(false);
+        Hand newHand = new Hand();
         Bet newBet = new Bet(originalBet.getAmount());
         newBet.setSplit(true);
         originalBet.setSplit(true);

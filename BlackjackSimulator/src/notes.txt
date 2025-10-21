@@ -1,13 +1,4 @@
-- Add more listeners to remove tight coupling before GUI and Game. (ie. stop calling game objects in GUI)
-
 - Add running count/true count with a checkbox toggle to show/hide.
-
-
-- Implement training mode with a checkbox toggle to enable/disable.
-	- If you make an unoptimal play, it will pop up telling you:
-		- The play you made was unoptimal. It will explain why.
-		- It will tell you the best play to make.
-		- It will have 2 buttons, one that lets you continue with your unoptimal play and one that changes your input to the optimal play
 
 - Finalize layout:
 	- When you split hands it needs to shift the card container over. 
@@ -16,6 +7,12 @@
 	- Add 4 buttons next to deal. min bet, 2x, 3x, 4x min bet
 	- Add slider that changes custom bet input amount (still allow typing in custom bet)
 	- Move money to be underneath the betting section
+
+- Implement training mode with a checkbox toggle to enable/disable.
+	- If you make an unoptimal play, it will pop up telling you:
+		- The play you made was unoptimal. It will explain why.
+		- It will tell you the best play to make.
+		- It will have 2 buttons, one that lets you continue with your unoptimal play and one that changes your input to the optimal play
 
 - Add audio effects ?
 

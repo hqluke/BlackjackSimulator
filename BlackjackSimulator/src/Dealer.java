@@ -4,7 +4,7 @@ public class Dealer {
 	private Hand hand;
     
     public Dealer() {
-        this.hand = new Hand(true);
+        this.hand = new Hand();
     }
     
     public void addCard(Card card) {

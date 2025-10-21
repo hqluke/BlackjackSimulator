@@ -1,12 +1,10 @@
 import java.util.*;
 public class Hand {
     private List<Card> cards;
-    private boolean isDealer;
     private boolean hideCard;
     
-    public Hand(boolean isDealer) {
+    public Hand() {
         this.cards = new ArrayList<>();
-        this.isDealer = isDealer;
         this.hideCard = false;
     }
     

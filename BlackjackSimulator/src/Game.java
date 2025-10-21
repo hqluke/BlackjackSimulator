@@ -1,4 +1,4 @@
-public class Game implements GUIEventListener {
+public class Game {
     private Deck deck;
     private Player player;
     private Dealer dealer;
@@ -92,7 +92,7 @@ public class Game implements GUIEventListener {
         }
     }
 
-    @Override
+
     public void onInitialDealComplete(){
         checkForBlackjacks(false);
     }
@@ -156,7 +156,6 @@ public class Game implements GUIEventListener {
         // GUI will handle animation and call completeHit
     }
 
-    @Override
     public void onHitAnimationComplete(int handIndex) {
         Card card = drawCard();
         player.addCardToHand(card, handIndex);
@@ -172,20 +171,6 @@ public class Game implements GUIEventListener {
             listener.onPlayerHandUpdated(player, handIndex);
         }
     }
-    
-    // // called by GUI after hit animation completes
-    // public void completeHit(int handIndex) {
-    //     Card card = drawCard();
-    //     player.addCardToHand(card, handIndex);
-    //     Hand hand = player.getHand(handIndex);
-        
-    //     // check if player busted
-    //     if (hand.isBust()) {
-    //         player.getBet(handIndex).setResult(Bet.BetResult.LOSE);
-    //         handleHandCompletion(handIndex);
-    //     }
-    //     // GUI will update display and buttons
-    // }
     
     // player stands 
     public void stand(int handIndex) {
@@ -212,7 +197,6 @@ public class Game implements GUIEventListener {
         }
     }
 
-    @Override
     public void onDoubleAnimationComplete(int handIndex) {
         Card card = drawCard();
         player.addCardToHand(card, handIndex);
@@ -226,21 +210,6 @@ public class Game implements GUIEventListener {
         // automatically complete this hand
         handleHandCompletion(handIndex);
     }
-    
-    // called by GUI after double animation completes
-    // public void completeDouble(int handIndex) {
-    //     Card card = drawCard();
-    //     player.addCardToHand(card, handIndex);
-    //     Hand hand = player.getHand(handIndex);
-        
-    //     // if busted, mark as loss
-    //     if (hand.isBust()) {
-    //         player.getBet(handIndex).setResult(Bet.BetResult.LOSE);
-    //     }
-        
-    //     // automatically complete this hand
-    //     handleHandCompletion(handIndex);
-    // }
     
     // player splits
     public void split(int handIndex) {
@@ -314,7 +283,6 @@ public class Game implements GUIEventListener {
         // GUI will handle reveal animation and then call dealerDrawCards
     }
 
-    @Override
     public void onDealerRevealComplete() {
         if (dealerHiddenCard != null) {
             runningCount += dealerHiddenCard.getCountValue();
@@ -337,7 +305,6 @@ public class Game implements GUIEventListener {
         dealer.addCard(card);
     }
 
-    @Override
     public void onDealerHitAnimationComplete() {
         Card card = drawCard();
         dealer.addCard(card);

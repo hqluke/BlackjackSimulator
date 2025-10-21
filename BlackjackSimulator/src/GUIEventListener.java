@@ -1,5 +1,13 @@
 public interface GUIEventListener {
     /**
+     * Called by GUI when it needs to create a new game
+     * @param numDecks Number of decks to use
+     * @param startingMoney Starting money for the player
+     * @param minimumBet Minimum bet amount
+     */
+    void onCreateGameRequested(int numDecks, double startingMoney, double minimumBet);
+    
+    /**
      * Called by GUI after the initial deal animation completes
      */
     void onInitialDealComplete();
@@ -25,9 +33,4 @@ public interface GUIEventListener {
      * Called by GUI after each dealer hit animation completes
      */
     void onDealerHitAnimationComplete();
-
-    /**
-     * Called by GUI after UI initialization is complete
-     */
-    // void onUiInitialized();
 }
