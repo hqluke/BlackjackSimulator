@@ -11,7 +11,13 @@ public class Game {
     private boolean insuranceOffered = false;
     private boolean insuranceResolved = false;
     private int customBetAmount = (int)minimumBet;
-    
+    private double pairBetAmount = 0.0;
+    private boolean isPairBetPlaced = false;
+    private double twentyOnePlusThreeBetAmount = 0.0;
+    private boolean is21Plus3BetPlaced = false;
+    private boolean areSideBetsRemembered = false;
+    private boolean blockAccessToSideBets = false;
+
     public Game(int numDecks, double startingMoney, double minimumBet) {
         this.numDecks = numDecks;
         this.minimumBet = minimumBet;
@@ -53,6 +59,21 @@ public class Game {
         player.placeBet(betAmount);
         
         roundInProgress = true;
+
+
+
+        if(areSideBetsRemembered()) {
+            onSideBetsPlaced(pairBetAmount, twentyOnePlusThreeBetAmount, 0, true);
+        } else if(isPairBetPlaced || is21Plus3BetPlaced) {
+            onSideBetsPlaced(pairBetAmount, twentyOnePlusThreeBetAmount, 0, false);
+        } else {
+            this.pairBetAmount = 0.0;
+            this.twentyOnePlusThreeBetAmount = 0.0;
+            this.isPairBetPlaced = false;
+            this.is21Plus3BetPlaced = false;
+        }
+
+        setBlockAccessToSideBets(false);
         
         if (listener != null) {
             listener.onRoundStart();
@@ -358,9 +379,9 @@ public class Game {
             Bet bet = player.getBets().get(i);
             double payout = bet.getPayout();
             
+            // handle insurance
             if (bet.isInsurancePlaced() && dealer.isBlackjack()) {
-                // Insurance pays 2:1
-                // loses 1/2 of main bet in total (bet $10, insurance $5, wins $10 from insurance, loses $10 main = net -$5)
+                // insurance pays 2:1
                 player.addMoney(bet.getInsuranceBet());
             } else if (bet.isInsurancePlaced() && !dealer.isBlackjack()) {
                 if (payout > 0) {
@@ -370,6 +391,36 @@ public class Game {
                 if (payout > 0) {
                     player.addMoney(payout);
                 }
+            }
+            
+            // handle Perfect Pair side bet (only for first hand)
+            if (i == 0 && bet.isPairBetPlaced()) {
+                Hand playerHand = player.getHand(0);
+                double pairPayout = DetermineSideBetPayout.calculatePairPayout(playerHand, bet.getCurrentPairBet());
+                if (pairPayout > 0) {
+                    player.addMoney(pairPayout);
+                    if(listener != null){
+                        listener.onSideBetWin(pairPayout);
+                    }
+                }
+                
+            }
+            
+            // handle 21+3 side bet (only for first hand)
+            if (i == 0 && bet.isTwentyOnePlusThreeBetPlaced()) {
+                Hand playerHand = player.getHand(0);
+                // get dealer's first (visible) card
+                Card dealerUpCard = dealer.getHand().getCards().get(0);
+                double twentyOnePlusThreePayout = DetermineSideBetPayout.calculateTwentyOnePlusThreePayout(
+                    playerHand, dealerUpCard, bet.getCurrentTwentyOnePlusThreeBet());
+                if (twentyOnePlusThreePayout > 0) {
+                    player.addMoney(twentyOnePlusThreePayout);
+                    if(listener != null){
+                        listener.onSideBetWin(twentyOnePlusThreePayout);
+                    }
+                }
+
+
             }
         }
         
@@ -436,8 +487,66 @@ public class Game {
         }
     }
 
+    public void onSideBetsPlaced(double pairAmount, double twentyOnePlusThreeAmount, int index, boolean areSideBetsRemembered) {
+        
+        this.pairBetAmount = pairAmount;
+        this.twentyOnePlusThreeBetAmount = twentyOnePlusThreeAmount;
+        this.isPairBetPlaced = pairAmount > 0;
+        this.is21Plus3BetPlaced = twentyOnePlusThreeAmount > 0;
+
+        setAreSideBetsRemembered(areSideBetsRemembered);
+        setBlockAccessToSideBets(true);
+
+        if (roundInProgress) {
+            onPairBet(pairAmount, index);
+            on21Plus3Bet(twentyOnePlusThreeAmount, index);
+    }
+    }
+
+
+    private void onPairBet(double pairAmount, int index) {
+        if (pairAmount <= 0) {
+            return;
+        }
+        if (index == 0) {
+            player.placePairBet(pairAmount, index);
+            // GUI updates money display
+            if (listener != null) {
+                listener.onMoneyChanged(player.getMoney());
+            }
+
+            this.pairBetAmount = pairAmount;
+            this.isPairBetPlaced = true;
+        }
+    }
+
+    private void on21Plus3Bet(double twentyOnePlusThreeAmount, int index) {
+        if (twentyOnePlusThreeAmount <= 0) {
+            return;
+        }
+        if (index == 0) {
+            player.placeTwentyOnePlusThreeBet(twentyOnePlusThreeAmount, index);
+            // GUI updates money display
+            if (listener != null) {
+                listener.onMoneyChanged(player.getMoney());
+            }
+
+            this.twentyOnePlusThreeBetAmount = twentyOnePlusThreeAmount;
+            this.is21Plus3BetPlaced = true;
+
+        }
+    }
+
     public void setCustomBetAmount(int amount) {
         this.customBetAmount = amount;
+    }
+
+    private void setAreSideBetsRemembered(boolean remember) {
+        this.areSideBetsRemembered = remember;
+    }
+
+    private void setBlockAccessToSideBets(boolean block) {
+        this.blockAccessToSideBets = block;
     }
 
     // getters
@@ -454,4 +563,10 @@ public class Game {
     public boolean canContinuePlaying() { return player.getMoney() >= minimumBet; }
     public Card peekNextCard() { return deck.peek(); }
     public int getCustomBetAmount() { return customBetAmount; }
+    public double getPairBetAmount() { return pairBetAmount; }
+    public double getTwentyOnePlusThreeBetAmount() { return twentyOnePlusThreeBetAmount; }
+    public boolean isPairBetPlaced() { return isPairBetPlaced; }
+    public boolean is21Plus3BetPlaced() { return is21Plus3BetPlaced; }
+    public boolean areSideBetsRemembered() { return areSideBetsRemembered; }
+    public boolean isBlockAccessToSideBets() { return blockAccessToSideBets; }    
 }

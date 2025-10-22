@@ -5,6 +5,8 @@ public class Bet {
     private boolean isSplit;
     private BetResult result;
     private double insuranceBet;
+    private double pairBet;
+    private double twentyOnePlusThreeBet;
 
     public enum BetResult {
         PENDING, WIN, LOSE, PUSH, BLACKJACK
@@ -13,6 +15,8 @@ public class Bet {
     public Bet(double amount) {
         this.amount = amount;
         this.insuranceBet = 0;
+        this.pairBet = 0;
+        this.twentyOnePlusThreeBet = 0;
         this.isDoubled = false;
         this.isSplit = false;
         this.result = BetResult.PENDING;
@@ -78,5 +82,29 @@ public class Bet {
 
     public boolean isInsurancePlaced() {
         return insuranceBet > 0;
+    }
+
+    public void placePairBet(double pairAmount) {
+        this.pairBet = pairAmount;
+    }
+
+    public boolean isPairBetPlaced() {
+        return pairBet > 0;
+    }
+
+    public double getCurrentPairBet() {
+        return pairBet;
+    }
+
+    public void placeTwentyOnePlusThreeBet(double amount) {
+        this.twentyOnePlusThreeBet = amount;
+    }
+
+    public boolean isTwentyOnePlusThreeBetPlaced() {
+        return twentyOnePlusThreeBet > 0;
+    }
+
+    public double getCurrentTwentyOnePlusThreeBet() {
+        return twentyOnePlusThreeBet;
     }
 }

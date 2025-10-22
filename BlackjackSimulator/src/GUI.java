@@ -25,10 +25,12 @@ public class GUI extends Application implements GameStateListener {
     private Label dealerValueLabel;
     private Label moneyLabel;
     private Label messageLabel;
+    private Label betMessageLabel;
     private Label betLabel;
     private Label countLabel;
     private TextField betField;
     private Button dealButton;
+    private Button sideBetButton;
     private Button hitButton;
     private Button standButton;
     private Button doubleButton;
@@ -39,6 +41,7 @@ public class GUI extends Application implements GameStateListener {
     private double WINDOW_HEIGHT;
     private double DEALER_Y;
     private double PLAYER_Y;
+    private double sideBetWinTotal = 0;
 
     private GUIEventListener gameEventListener;
 
@@ -138,6 +141,13 @@ public class GUI extends Application implements GameStateListener {
         messageLabel.setVisible(false);
         root.getChildren().add(messageLabel);
 
+        betMessageLabel = new Label("");
+        betMessageLabel.setStyle("-fx-font-size: 18px; -fx-text-fill: orange; -fx-font-weight: bold;");
+        betMessageLabel.setLayoutX(200);
+        betMessageLabel.setLayoutY(WINDOW_HEIGHT - 120);
+        betMessageLabel.setVisible(false);
+        root.getChildren().add(betMessageLabel);  
+
         // dealer section
         setupDealerArea();
         
@@ -201,8 +211,22 @@ public class GUI extends Application implements GameStateListener {
     private void setupBettingArea(double minimumBet) {
         HBox mainBettingBox = new HBox(20);
         mainBettingBox.setAlignment(Pos.CENTER);
-        mainBettingBox.setLayoutX(WINDOW_WIDTH / 2 - 180);
+        mainBettingBox.setLayoutX(WINDOW_WIDTH / 2 - 280);
         mainBettingBox.setLayoutY(WINDOW_HEIGHT - 110);
+
+        sideBetButton = new Button("Place\nSide Bets");
+        sideBetButton.setPrefWidth(120);
+        sideBetButton.setPrefHeight(60);
+        sideBetButton.setStyle("-fx-font-size: 14px; -fx-font-weight: bold;");
+        sideBetButton.setOnAction(e -> {
+            if (!gameController.isRoundInProgress()) {
+                if(gameController.isBlockAccessToSideBets()) {
+                    showMessage("Side bets already placed for this round!");
+                } else {
+                    handleSideBets();
+                }
+            }
+        });
 
         dealButton = new Button("Deal");
         dealButton.setPrefWidth(120);
@@ -229,7 +253,7 @@ public class GUI extends Application implements GameStateListener {
         });
         
         bettingBox.getChildren().addAll(betLabel, betField);
-        mainBettingBox.getChildren().addAll(dealButton, bettingBox);
+        mainBettingBox.getChildren().addAll(sideBetButton, dealButton, bettingBox);
         root.getChildren().add(mainBettingBox);
     }
     
@@ -362,6 +386,26 @@ public class GUI extends Application implements GameStateListener {
     }
     
     // event handlers
+    private void handleSideBets() {
+        SideBetDialog.show(gameController.getPlayer().getMoney(), result -> {
+            if (result != null) {
+                double totalSideBets = result.perfectPairAmount + result.twentyOnePlusThreeAmount;
+                if (totalSideBets > 0) {
+                    showMessage(String.format("Side bets placed: Perfect Pair $%.0f, 21+3 $%.0f", 
+                        result.perfectPairAmount, result.twentyOnePlusThreeAmount));
+
+                    gameController.onSideBetsPlaced(result.perfectPairAmount, result.twentyOnePlusThreeAmount, 
+                        result.saveForNextRounds);
+                }
+            }
+        });
+    }
+
+    @Override
+    public void onSideBetWin(double payout) {
+        sideBetWinTotal += payout;
+    }
+
     private void handleDeal() {
         try {
             String betText = betField.getText();
@@ -392,12 +436,15 @@ public class GUI extends Application implements GameStateListener {
         clearDisplay();
         betLabel.setVisible(false);
         dealButton.setVisible(false);
+        sideBetButton.setVisible(false);
         betField.setVisible(false);
         messageLabel.setVisible(false);
+        betMessageLabel.setVisible(false);
     }
     
     @Override
     public void onInitialDeal(Player player, Dealer dealer) {
+        updateMoneyDisplay();
         Hand playerHand = player.getHand(0);
         Hand dealerHand = dealer.getHand();
         List<Card> playerCardsList = playerHand.getCards();
@@ -428,7 +475,7 @@ public class GUI extends Application implements GameStateListener {
                 
                 playerValueLabel.setText("Value: " + playerHand.getValue());
                 playerValueLabel.setVisible(true);
-                updateMoneyDisplay();
+                
 
                 if (gameEventListener != null) {
                 gameEventListener.onInitialDealComplete();
@@ -553,10 +600,23 @@ public class GUI extends Application implements GameStateListener {
         if (!gameController.canContinuePlaying()) {
             showMessage("Game Over! Out of money.");
             dealButton.setDisable(true);
+            sideBetButton.setDisable(true);
         } else {
             dealButton.setVisible(true);
+            sideBetButton.setVisible(true);
             betField.setVisible(true);
             betLabel.setVisible(true);
+        }
+
+        // if side bets were placed this round but not remembered, show confirmation message
+        if ((gameController.isPairBetPlaced() || gameController.is21Plus3BetPlaced()) 
+            && !gameController.areSideBetsRemembered()) {
+            showMessage("Side bets cleared. Place new side bets for next round if desired.");
+        }
+
+        if(sideBetWinTotal > 0) {
+            showBetMessage(String.format("You won $%.2f from side bets!", sideBetWinTotal));
+            sideBetWinTotal = 0;
         }
     }
     
@@ -734,6 +794,7 @@ public class GUI extends Application implements GameStateListener {
         playerValueLabel.setVisible(false);
         dealerValueLabel.setVisible(false);
         messageLabel.setVisible(false);
+        betMessageLabel.setVisible(false);
     }
     
     private void showRoundResults(List<Bet> bets) {
@@ -788,6 +849,11 @@ public class GUI extends Application implements GameStateListener {
     private void showMessage(String message) {
         messageLabel.setText(message);
         messageLabel.setVisible(true);
+    }
+
+    private void showBetMessage(String message){
+        betMessageLabel.setText(message);
+        betMessageLabel.setVisible(true);
     }
     
     private void updateMoneyDisplay() {

@@ -59,7 +59,13 @@ public class GameController implements GUIEventListener {
             game.onDealerHitAnimationComplete();
         }
     }
-    
+
+    @Override
+    public void onSideBetsPlaced(double pairBet, double twentyOnePlusThreeBet, boolean rememberSideBets) {
+        if (game != null) {
+            game.onSideBetsPlaced(pairBet, twentyOnePlusThreeBet, 0, rememberSideBets);
+        }
+    }
     // game action methods
     public void startRound(double betAmount) {
         if (game != null) {
@@ -126,7 +132,15 @@ public class GameController implements GUIEventListener {
     public int getCustomBetAmount() {
         return game != null ? game.getCustomBetAmount() : 0;
     }
-    
+
+    public double getPairBetAmount() {
+        return game != null ? game.getPairBetAmount() : 0.0;
+    }
+
+    public double getTwentyOnePlusThreeBetAmount() {
+        return game != null ? game.getTwentyOnePlusThreeBetAmount() : 0.0;
+    }
+
     // query methods
     public Card peekNextCard() {
         return game != null ? game.peekNextCard() : null;
@@ -138,6 +152,22 @@ public class GameController implements GUIEventListener {
     
     public boolean canContinuePlaying() {
         return game != null && game.canContinuePlaying();
+    }
+
+    public boolean areSideBetsRemembered() {
+        return game != null && game.areSideBetsRemembered();
+    }
+
+    public boolean isPairBetPlaced() {
+        return game != null && game.isPairBetPlaced();
+    }
+
+    public boolean is21Plus3BetPlaced() {
+        return game != null && game.is21Plus3BetPlaced();
+    }
+
+    public boolean isBlockAccessToSideBets() {
+        return game != null && game.isBlockAccessToSideBets();
     }
     
     // player data access

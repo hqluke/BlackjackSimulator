@@ -81,4 +81,11 @@ public interface GameStateListener {
      * Called when insurance is offered to the player
      */
     void onInsuranceOffer();
+
+    /**
+     * Called when a side bet wins
+     * @param payout The payout amount for the side bet
+     */
+    void onSideBetWin(double payout);
+
 }

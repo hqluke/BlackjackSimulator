@@ -33,4 +33,12 @@ public interface GUIEventListener {
      * Called by GUI after each dealer hit animation completes
      */
     void onDealerHitAnimationComplete();
+
+    /**
+     * Called by GUI when side bets are placed
+     * @param pairBet Amount placed on Pair side bet
+     * @param twentyOnePlusThreeBet Amount placed on 21+3 side bet
+     */
+    void onSideBetsPlaced(double pairBet, double twentyOnePlusThreeBet, boolean rememberSideBets);
+
 }

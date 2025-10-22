@@ -143,4 +143,32 @@ public class Player {
         money -= insuranceAmount;
         bet.placeInsuranceBet(insuranceAmount);
     }
+
+    public void placePairBet(double pairAmount, int index) {
+        Bet bet = bets.get(index);
+        if (bet == null) {
+            throw new IllegalArgumentException("No bet found for hand index");
+        }
+
+        if (pairAmount > money) {
+            throw new IllegalArgumentException("Insufficient funds for pair bet");
+        }
+
+        money -= pairAmount;
+        bet.placePairBet(pairAmount);
+    }
+
+    public void placeTwentyOnePlusThreeBet(double amount, int index) {
+        Bet bet = bets.get(index);
+        if (bet == null) {
+            throw new IllegalArgumentException("No bet found for hand index");
+        }
+
+        if (amount > money) {
+            throw new IllegalArgumentException("Insufficient funds for 21+3 bet");
+        }
+
+        money -= amount;
+        bet.placeTwentyOnePlusThreeBet(amount);
+    }
 }

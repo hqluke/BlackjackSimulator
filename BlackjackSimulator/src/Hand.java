@@ -54,6 +54,35 @@ public class Hand {
         return cards.size() == 2 && 
                cards.get(0).getRank() == cards.get(1).getRank();
     }
+
+    public boolean isPerfectPair() {
+        return canSplit() && 
+               cards.get(0).getSuit() == cards.get(1).getSuit();
+    }
+
+    public boolean isSameColorPair() {
+        if(!canSplit()) {
+            return false;
+        }
+        String Hearts = Card.Suit.HEARTS.getSymbol();
+        String Diamonds = Card.Suit.DIAMONDS.getSymbol();
+        String Clubs = Card.Suit.CLUBS.getSymbol();
+        String Spades = Card.Suit.SPADES.getSymbol();
+
+        String firstCardSuit = cards.get(0).getSuit().getSymbol();
+        String secondCardSuit = cards.get(1).getSuit().getSymbol();
+
+        boolean firstRed = firstCardSuit.equals(Hearts) || firstCardSuit.equals(Diamonds);
+        boolean secondRed = secondCardSuit.equals(Hearts) || secondCardSuit.equals(Diamonds);
+        boolean firstBlack = firstCardSuit.equals(Clubs) || firstCardSuit.equals(Spades);
+        boolean secondBlack = secondCardSuit.equals(Clubs) || secondCardSuit.equals(Spades);
+
+        return (firstRed && secondRed) || (firstBlack && secondBlack);
+    }
+
+    public boolean isMixedPair() {
+        return canSplit() && !isPerfectPair() && !isSameColorPair();
+    }
     
     public boolean canDouble() {
         return cards.size() == 2;
