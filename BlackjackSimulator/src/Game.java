@@ -396,6 +396,16 @@ public class Game {
             // handle Perfect Pair side bet (only for first hand)
             if (i == 0 && bet.isPairBetPlaced()) {
                 Hand playerHand = player.getHand(0);
+                // if split, combine first cards of both hands for pair evaluation
+                if(player.getNumHands() >= 2){
+                    Hand playerHand1 = player.getHand(1);
+                    Hand combinedHand = new Hand();
+                    combinedHand.addCard(playerHand.getCards().get(0));
+                    combinedHand.addCard(playerHand1.getCards().get(0));
+                    playerHand = combinedHand;
+
+                }
+
                 double pairPayout = DetermineSideBetPayout.calculatePairPayout(playerHand, bet.getCurrentPairBet());
                 if (pairPayout > 0) {
                     player.addMoney(pairPayout);
@@ -403,12 +413,22 @@ public class Game {
                         listener.onSideBetWin(pairPayout);
                     }
                 }
+            
                 
             }
             
             // handle 21+3 side bet (only for first hand)
             if (i == 0 && bet.isTwentyOnePlusThreeBetPlaced()) {
                 Hand playerHand = player.getHand(0);
+                // if split, combine first cards of both hands for pair evaluation
+                if(player.getNumHands() >= 2){
+                    Hand playerHand1 = player.getHand(1);
+                    Hand combinedHand = new Hand();
+                    combinedHand.addCard(playerHand.getCards().get(0));
+                    combinedHand.addCard(playerHand1.getCards().get(0));
+                    playerHand = combinedHand;
+
+                }
                 // get dealer's first (visible) card
                 Card dealerUpCard = dealer.getHand().getCards().get(0);
                 double twentyOnePlusThreePayout = DetermineSideBetPayout.calculateTwentyOnePlusThreePayout(

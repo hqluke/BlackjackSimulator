@@ -6,7 +6,7 @@
       "name": "Run Blackjack Simulator",
       "request": "launch",
       "mainClass": "Main",
-      "vmArgs": "--module-path /home/luke/repos/javafx-sdk-21.0.8/lib --add-modules javafx.controls,javafx.fxml,javafx.graphics,javafx.base"
+      "vmArgs": "--module-path /home/luke/Java/javafx-sdk-21.0.9 --add-modules javafx.controls,javafx.fxml,javafx.graphics,javafx.base"
     }
   ]
 }
