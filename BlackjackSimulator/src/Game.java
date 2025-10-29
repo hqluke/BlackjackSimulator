@@ -63,8 +63,26 @@ public class Game {
 
 
         if(areSideBetsRemembered()) {
+            if(!player.canAfford(pairBetAmount + twentyOnePlusThreeBetAmount)){
+                pairBetAmount = 0;
+                twentyOnePlusThreeBetAmount = 0;
+                isPairBetPlaced = false;
+                is21Plus3BetPlaced = false;
+                if(listener != null){
+                    listener.onBetMessage("Not enough money for remembered sidebets, sidebets removed.");
+                }
+                
+            }
             onSideBetsPlaced(pairBetAmount, twentyOnePlusThreeBetAmount, 0, true);
         } else if(isPairBetPlaced || is21Plus3BetPlaced) {
+            if(!player.canAfford(pairBetAmount + twentyOnePlusThreeBetAmount)){
+                pairBetAmount = 0;
+                twentyOnePlusThreeBetAmount = 0;
+                if(listener != null){
+                    listener.onBetMessage("Not enough money for remembered sidebets, sidebets removed.");
+                }
+                
+            }
             onSideBetsPlaced(pairBetAmount, twentyOnePlusThreeBetAmount, 0, false);
         } else {
             this.pairBetAmount = 0.0;

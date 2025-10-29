@@ -439,7 +439,7 @@ public class GUI extends Application implements GameStateListener {
         sideBetButton.setVisible(false);
         betField.setVisible(false);
         messageLabel.setVisible(false);
-        betMessageLabel.setVisible(false);
+        betMessageLabel.setVisible(true);
     }
     
     @Override
@@ -854,6 +854,11 @@ public class GUI extends Application implements GameStateListener {
     private void showBetMessage(String message){
         betMessageLabel.setText(message);
         betMessageLabel.setVisible(true);
+    }
+
+    @Override
+    public void onBetMessage(String message) {
+        showBetMessage(message);
     }
     
     private void updateMoneyDisplay() {
