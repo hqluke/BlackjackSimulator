@@ -22,6 +22,8 @@ public class Game {
         this.numDecks = numDecks;
         this.minimumBet = minimumBet;
         this.deck = new Deck(numDecks);
+        //comment out below to run normal deck
+         deck.createTestSplitDeck();
         this.player = new Player(startingMoney);
         this.dealer = new Dealer();
         this.runningCount = 0;
@@ -69,7 +71,7 @@ public class Game {
                 isPairBetPlaced = false;
                 is21Plus3BetPlaced = false;
                 if(listener != null){
-                    listener.onBetMessage("Not enough money for remembered sidebets, sidebets removed.");
+                    listener.onBetMessage("Not enough money for remembered sidebets, sidebets removed.", false);
                 }
                 
             }
@@ -79,7 +81,7 @@ public class Game {
                 pairBetAmount = 0;
                 twentyOnePlusThreeBetAmount = 0;
                 if(listener != null){
-                    listener.onBetMessage("Not enough money for remembered sidebets, sidebets removed.");
+                    listener.onBetMessage("Not enough money for remembered sidebets, sidebets removed.", false);
                 }
                 
             }
@@ -96,11 +98,11 @@ public class Game {
         if (listener != null) {
             listener.onRoundStart();
         }
-        
-        // check if deck needs reshuffling AFTER onRoundStart
-        if (deck.getDecksRemaining() < numDecks * 0.25) {
-            reshuffleDeck();
-        }
+        // TODO:
+         // check if deck needs reshuffling AFTER onRoundStart
+        // if (deck.getDecksRemaining() < numDecks * 0.25) {
+        //     reshuffleDeck();
+        // }
         
         // deal initial cards
         dealInitialCards();

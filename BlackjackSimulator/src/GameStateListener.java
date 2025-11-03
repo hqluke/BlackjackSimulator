@@ -89,6 +89,6 @@ public interface GameStateListener {
     void onSideBetWin(double payout);
 
 
-    void onBetMessage(String message);
+    void onBetMessage(String message, boolean hideMessage);
 
 }

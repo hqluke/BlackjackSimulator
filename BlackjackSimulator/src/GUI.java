@@ -42,6 +42,8 @@ public class GUI extends Application implements GameStateListener {
     private double DEALER_Y;
     private double PLAYER_Y;
     private double sideBetWinTotal = 0;
+    private boolean handsSplit = false;
+    private boolean hideBetMessage = false;
 
     private GUIEventListener gameEventListener;
 
@@ -439,7 +441,14 @@ public class GUI extends Application implements GameStateListener {
         sideBetButton.setVisible(false);
         betField.setVisible(false);
         messageLabel.setVisible(false);
-        betMessageLabel.setVisible(true);
+        if(hideBetMessage){
+            betMessageLabel.setVisible(false);
+        }
+        if(handsSplit) {
+            // reset playerCards position if hands were split
+            playerCards.setLayoutX((WINDOW_WIDTH - 400) / 2);
+            handsSplit = false;
+        }
     }
     
     @Override
@@ -683,40 +692,68 @@ public class GUI extends Application implements GameStateListener {
         }
     }
     
-    private void displaySplitHands(int currentHandIndex, int numHands) {
-        for (int i = 0; i < numHands; i++) {
-            Hand hand = gameController.getPlayer().getHand(i);
-            if (hand != null) {
-                VBox handBox = new VBox(5);
-                handBox.setAlignment(Pos.CENTER);
-                handBox.setStyle("-fx-padding: 0 30 0 30;");
-                
-                Label handLabel = new Label("Hand " + (i + 1) + (i == currentHandIndex ? " ◄ Current" : ""));
-                handLabel.setStyle("-fx-font-size: 14px; -fx-text-fill: yellow; -fx-font-weight: bold;");
-                
-                HBox handCards = new HBox(5);
-                handCards.setAlignment(Pos.CENTER);
-                for (Card card : hand.getCards()) {
-                    handCards.getChildren().add(createCard(getRankString(card), card.getSuit().getSymbol()));
-                }
-                
-                Label valueLabel = new Label("Value: " + hand.getValue());
-                valueLabel.setStyle("-fx-font-size: 14px; -fx-text-fill: white; -fx-font-weight: bold;");
-                
-                Bet bet = gameController.getPlayer().getBet(i);
-                if (bet.getResult() != Bet.BetResult.PENDING) {
-                    Label resultLabel = new Label(getResultText(bet.getResult()));
-                    resultLabel.setStyle("-fx-font-size: 12px; -fx-text-fill: lime; -fx-font-weight: bold;");
-                    handBox.getChildren().addAll(handLabel, handCards, valueLabel, resultLabel);
-                } else {
-                    handBox.getChildren().addAll(handLabel, handCards, valueLabel);
-                }
-                
-                playerCards.getChildren().add(handBox);
-            }
-        }
-        playerValueLabel.setVisible(false);
+private void displaySplitHands(int currentHandIndex, int numHands) {
+    // Calculate dynamic spacing based on number of hands
+    int cardWidth = 105;
+    int cardSpacing = 5;
+    int handPadding;
+    handsSplit = true;
+    // Adjust padding based on number of hands to fit everything on screen
+    if (numHands == 2) {
+        handPadding = 10; // spacious for 2 hands
+    } else if (numHands == 3) {
+        handPadding = 8; // tighter for 3 hands
+    } else if (numHands == 4) {
+        handPadding = 6; // very tight for 4 hands
+    } else {
+        handPadding = 4; // minimal for 5+ hands
     }
+    
+    // Calculate total width needed and apply a gentle shift left for balance
+    int estimatedHandWidth = (cardWidth + cardSpacing) * 3; // estimate 3 cards per hand average
+    int totalWidth = (estimatedHandWidth + handPadding * 2) * numHands;
+    
+    // Apply a moderate leftward shift (half of what we had before)
+    double originalX = (WINDOW_WIDTH - 600) / 2; // original centered position
+    double shiftAmount = (totalWidth - estimatedHandWidth * 2) * 0.40; // 25% shift instead of 50%
+    double startX = originalX - shiftAmount;
+    
+    // Reposition the playerCards container with moderate shift
+    playerCards.setLayoutX(startX);
+    
+    for (int i = 0; i < numHands; i++) {
+        Hand hand = gameController.getPlayer().getHand(i);
+        if (hand != null) {
+            VBox handBox = new VBox(5);
+            handBox.setAlignment(Pos.CENTER);
+            handBox.setStyle("-fx-padding: 0 " + handPadding + " 0 " + handPadding + ";");
+            
+            Label handLabel = new Label("Hand " + (i + 1) + (i == currentHandIndex ? " ◄ Current" : ""));
+            handLabel.setStyle("-fx-font-size: 14px; -fx-text-fill: yellow; -fx-font-weight: bold;");
+            
+            HBox handCards = new HBox(cardSpacing);
+            handCards.setAlignment(Pos.CENTER);
+            for (Card card : hand.getCards()) {
+                handCards.getChildren().add(createCard(getRankString(card), card.getSuit().getSymbol()));
+            }
+            
+            Label valueLabel = new Label("Value: " + hand.getValue());
+            valueLabel.setStyle("-fx-font-size: 14px; -fx-text-fill: white; -fx-font-weight: bold;");
+            
+            Bet bet = gameController.getPlayer().getBet(i);
+            if (bet.getResult() != Bet.BetResult.PENDING) {
+                Label resultLabel = new Label(getResultText(bet.getResult()));
+                resultLabel.setStyle("-fx-font-size: 12px; -fx-text-fill: lime; -fx-font-weight: bold;");
+                handBox.getChildren().addAll(handLabel, handCards, valueLabel, resultLabel);
+            } else {
+                handBox.getChildren().addAll(handLabel, handCards, valueLabel);
+            }
+            
+            playerCards.getChildren().add(handBox);
+        }
+    }
+    playerValueLabel.setVisible(false);
+}
     
     private void updateDealerDisplay() {
         dealerCards.getChildren().clear();
@@ -854,11 +891,13 @@ public class GUI extends Application implements GameStateListener {
     private void showBetMessage(String message){
         betMessageLabel.setText(message);
         betMessageLabel.setVisible(true);
+
     }
 
     @Override
-    public void onBetMessage(String message) {
+    public void onBetMessage(String message, boolean hideMessage) {
         showBetMessage(message);
+        hideBetMessage = hideMessage;
     }
     
     private void updateMoneyDisplay() {

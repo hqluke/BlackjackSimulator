@@ -27,6 +27,40 @@ public class Deck {
         }
         shuffle();
     }
+
+    public void createTestSplitDeck() {
+    cards.clear();
+    
+    // Create a deck that allows 3 splits in a row
+    // Player gets: 8 8
+    // Dealer gets 6 7
+    
+    // Add multiple 8s for player to keep splitting
+    cards.add(new Card(Card.Suit.HEARTS, Card.Rank.TWO));   // player card 1
+    cards.add(new Card(Card.Suit.SPADES, Card.Rank.SIX));     // dealer hidden card
+    cards.add(new Card(Card.Suit.DIAMONDS, Card.Rank.TWO)); // player card 2
+    cards.add(new Card(Card.Suit.SPADES, Card.Rank.SEVEN));   // dealer up card
+    cards.add(new Card(Card.Suit.CLUBS, Card.Rank.TWO));    // split card 1
+    // cards.add(new Card(Card.Suit.SPADES, Card.Rank.EIGHT));   // split card 2
+    // cards.add(new Card(Card.Suit.HEARTS, Card.Rank.EIGHT));   // split card 3
+    // cards.add(new Card(Card.Suit.DIAMONDS, Card.Rank.EIGHT)); // split card 4
+    // cards.add(new Card(Card.Suit.CLUBS, Card.Rank.EIGHT));    // split card 5
+    // cards.add(new Card(Card.Suit.SPADES, Card.Rank.EIGHT));   // split card 6
+    // cards.add(new Card(Card.Suit.HEARTS, Card.Rank.EIGHT));   // split card 7
+    // cards.add(new Card(Card.Suit.DIAMONDS, Card.Rank.EIGHT)); // split card 8
+    
+    // Dealer cards
+
+    
+    
+    // Add some filler cards for dealer/player hits
+    // for (int i = 0; i < 10; i++) {
+    //     cards.add(new Card(Card.Suit.HEARTS, Card.Rank.THREE));
+    // }
+    
+    // Reverse the list since drawCard() removes from the end
+    Collections.reverse(cards);
+}
     
     public void shuffle() {
         Collections.shuffle(cards, random); //randomizes the whole cards list
