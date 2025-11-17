@@ -1,5 +1,6 @@
 import javafx.application.Application;
 import javafx.scene.Scene;
+import javafx.scene.control.Slider;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
 import javafx.stage.Stage;
@@ -12,7 +13,6 @@ import javafx.stage.Screen;
 import javafx.geometry.Rectangle2D;
 import javafx.animation.PauseTransition;
 import java.util.List;
-
 public class GUI extends Application implements GameStateListener {
     
     private Pane root;
@@ -36,6 +36,11 @@ public class GUI extends Application implements GameStateListener {
     private Button doubleButton;
     private Button splitButton;
     private Button speedButton;
+    private Slider moneySlider;
+    private Button halfButton;
+    private Button twoXButton;
+    private Button threeXButton;
+    private Button fourXButton;
     
     private double WINDOW_WIDTH;
     private double WINDOW_HEIGHT;
@@ -44,6 +49,7 @@ public class GUI extends Application implements GameStateListener {
     private double sideBetWinTotal = 0;
     private boolean handsSplit = false;
     private boolean hideBetMessage = false;
+    private boolean updatingSlider = false;
 
     private GUIEventListener gameEventListener;
 
@@ -154,10 +160,9 @@ public class GUI extends Application implements GameStateListener {
         setupDealerArea();
         
         // player section
-        setupPlayerArea();
-
+        setupPlayerArea();                   
         // betting section
-        setupBettingArea(minimumBet);
+        setupBettingArea(minimumBet, playerMoney);
 
         // action buttons
         setupActionButtons();
@@ -210,12 +215,12 @@ public class GUI extends Application implements GameStateListener {
         root.getChildren().add(playerCards);
     }
 
-    private void setupBettingArea(double minimumBet) {
+    private void setupBettingArea(double minimumBet, double playerMoney) {
         HBox mainBettingBox = new HBox(20);
         mainBettingBox.setAlignment(Pos.CENTER);
         mainBettingBox.setLayoutX(WINDOW_WIDTH / 2 - 280);
         mainBettingBox.setLayoutY(WINDOW_HEIGHT - 110);
-
+    
         sideBetButton = new Button("Place\nSide Bets");
         sideBetButton.setPrefWidth(120);
         sideBetButton.setPrefHeight(60);
@@ -229,36 +234,137 @@ public class GUI extends Application implements GameStateListener {
                 }
             }
         });
-
+    
         dealButton = new Button("Deal");
         dealButton.setPrefWidth(120);
         dealButton.setPrefHeight(40);
         dealButton.setStyle("-fx-font-size: 18px; -fx-font-weight: bold;");
         dealButton.setOnAction(e -> handleDeal());
-
+    
+        int minBetInt = (int)minimumBet;
+        int moneyInt = (int)playerMoney;
+    
+        // Create multiplier buttons
+        halfButton = new Button("1/2x");
+        twoXButton = new Button("2x");
+        threeXButton = new Button("3x");
+        fourXButton = new Button("4x");
+        
+        String multiplierStyle = "-fx-font-size: 12px; -fx-padding: 5px 10px;";
+        halfButton.setStyle(multiplierStyle);
+        twoXButton.setStyle(multiplierStyle);
+        threeXButton.setStyle(multiplierStyle);
+        fourXButton.setStyle(multiplierStyle);
+        
+        // Multiplier button actions
+        halfButton.setOnAction(e -> {
+            int currentBet = Integer.parseInt(betField.getText());
+            int newBet = Math.max(minBetInt, currentBet / 2);
+            int playerMoneyNow = (int)gameController.getPlayer().getMoney();
+            newBet = Math.min(newBet, playerMoneyNow);
+            betField.setText(String.valueOf(newBet));
+            moneySlider.setValue(newBet);
+        });
+        
+        twoXButton.setOnAction(e -> {
+            int currentBet = Integer.parseInt(betField.getText());
+            int newBet = currentBet * 2;
+            int playerMoneyNow = (int)gameController.getPlayer().getMoney();
+            newBet = Math.min(newBet, playerMoneyNow);
+            betField.setText(String.valueOf(newBet));
+            moneySlider.setValue(newBet);
+        });
+        
+        threeXButton.setOnAction(e -> {
+            int currentBet = Integer.parseInt(betField.getText());
+            int newBet = currentBet * 3;
+            int playerMoneyNow = (int)gameController.getPlayer().getMoney();
+            newBet = Math.min(newBet, playerMoneyNow);
+            betField.setText(String.valueOf(newBet));
+            moneySlider.setValue(newBet);
+        });
+        
+        fourXButton.setOnAction(e -> {
+            int currentBet = Integer.parseInt(betField.getText());
+            int newBet = currentBet * 4;
+            int playerMoneyNow = (int)gameController.getPlayer().getMoney();
+            newBet = Math.min(newBet, playerMoneyNow);
+            betField.setText(String.valueOf(newBet));
+            moneySlider.setValue(newBet);
+        });
+        
+        // HBox for multiplier buttons
+        HBox multiplierBox = new HBox(5);
+        multiplierBox.setAlignment(Pos.CENTER);
+        multiplierBox.getChildren().addAll(halfButton, twoXButton, threeXButton, fourXButton);
+        
+        // Create slider
+        moneySlider = new Slider(minBetInt, moneyInt, minBetInt);
+        moneySlider.setMajorTickUnit(1);
+        moneySlider.setSnapToTicks(true);
+        moneySlider.setMinorTickCount(0);
+        moneySlider.setShowTickMarks(false);
+        
+        moneySlider.valueProperty().addListener((obs, oldVal, newVal) -> {
+            if (updatingSlider) return;
+            updatingSlider = true;
+            
+            int snappedValue = newVal.intValue();
+            double playerMoneyNow = gameController.getPlayer().getMoney();
+            
+            if (snappedValue > playerMoneyNow) {
+                snappedValue = (int)playerMoneyNow;
+                moneySlider.setValue(snappedValue);
+            }
+            
+            betField.setText(String.valueOf(snappedValue));
+            updatingSlider = false;
+        });
+        
+        // VBox for multiplier buttons and slider
+        VBox sliderBox = new VBox(5);
+        sliderBox.setAlignment(Pos.CENTER);
+        sliderBox.getChildren().addAll(multiplierBox, moneySlider);
+    
         HBox bettingBox = new HBox(15);
         bettingBox.setAlignment(Pos.CENTER);
-
+    
         betLabel = new Label("Place Bet:");
         betLabel.setStyle("-fx-font-size: 16px; -fx-text-fill: white; -fx-font-weight: bold;");
-
-        int minBetInt = (int)minimumBet;
+    
         betField = new TextField(String.valueOf(minBetInt));
         betField.setPrefWidth(150);
         betField.setPrefHeight(40);
         betField.setStyle("-fx-font-size: 16px;");
         
         betField.textProperty().addListener((observable, oldValue, newValue) -> {
+            if (updatingSlider) return;
+            updatingSlider = true;
+            
             if (!newValue.matches("\\d*")) {
                 betField.setText(newValue.replaceAll("[^\\d]", ""));
+            } else if (!newValue.isEmpty()) {
+                try {
+                    int value = Integer.parseInt(newValue);
+                    double playerMoneyNow = gameController.getPlayer().getMoney();
+                    if (value > playerMoneyNow) {
+                        betField.setText(String.valueOf((int)playerMoneyNow));
+                        moneySlider.setValue((int)playerMoneyNow);
+                    } else {
+                        moneySlider.setValue(value);
+                    }
+                } catch (NumberFormatException ex) {
+                    // ignore
+                }
             }
+            
+            updatingSlider = false;
         });
         
-        bettingBox.getChildren().addAll(betLabel, betField);
+        bettingBox.getChildren().addAll(betLabel, betField, sliderBox);
         mainBettingBox.getChildren().addAll(sideBetButton, dealButton, bettingBox);
         root.getChildren().add(mainBettingBox);
     }
-    
     private void setupActionButtons() {
         HBox buttonBar = new HBox(15);
         buttonBar.setAlignment(Pos.CENTER);
@@ -441,6 +547,11 @@ public class GUI extends Application implements GameStateListener {
         sideBetButton.setVisible(false);
         betField.setVisible(false);
         messageLabel.setVisible(false);
+        halfButton.setVisible(false);
+        twoXButton.setVisible(false);
+        threeXButton.setVisible(false);
+        fourXButton.setVisible(false);
+        moneySlider.setVisible(false);
         if(hideBetMessage){
             betMessageLabel.setVisible(false);
         }
@@ -603,8 +714,17 @@ public class GUI extends Application implements GameStateListener {
         showRoundResults(bets);
         setActionButtonsVisible(false);
         updateMoneyDisplay();
+        int totalMoney = (int)gameController.getPlayer().getMoney();  
+        int customMoney = gameController.getCustomBetAmount();
+
+        moneySlider.setMax(totalMoney);
         
-        betField.setText(String.valueOf((int)gameController.getCustomBetAmount()));
+        // Set bet amount to either custom amount or player's total (whichever is lower)
+        int newBetAmount = Math.min(customMoney, totalMoney);
+        
+        betField.setText(String.valueOf(newBetAmount));
+        moneySlider.setValue(newBetAmount);
+
         
         if (!gameController.canContinuePlaying()) {
             showMessage("Game Over! Out of money.");
@@ -615,14 +735,18 @@ public class GUI extends Application implements GameStateListener {
             sideBetButton.setVisible(true);
             betField.setVisible(true);
             betLabel.setVisible(true);
+            halfButton.setVisible(true);
+            twoXButton.setVisible(true);
+            threeXButton.setVisible(true);
+            fourXButton.setVisible(true);
+            moneySlider.setVisible(true);
         }
-
-        // if side bets were placed this round but not remembered, show confirmation message
+    
         if ((gameController.isPairBetPlaced() || gameController.is21Plus3BetPlaced()) 
             && !gameController.areSideBetsRemembered()) {
             showMessage("Side bets cleared. Place new side bets for next round if desired.");
         }
-
+    
         if(sideBetWinTotal > 0) {
             showBetMessage(String.format("You won $%.2f from side bets!", sideBetWinTotal));
             sideBetWinTotal = 0;

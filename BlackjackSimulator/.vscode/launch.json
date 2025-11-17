@@ -3,10 +3,11 @@
   "configurations": [
     {
       "type": "java",
-      "name": "Run Blackjack Simulator",
+      "name": "Debug Blackjack Simulator",
       "request": "launch",
       "mainClass": "Main",
-      "vmArgs": "--module-path /home/luke/Java/javafx-sdk-21.0.9 --add-modules javafx.controls,javafx.fxml,javafx.graphics,javafx.base"
+      "projectName": "BlackjackSimulator",
+      "vmArgs": "--module-path /home/luke/javaProjects/javafx-sdk-21.0.9/lib --add-modules javafx.controls,javafx.fxml,javafx.graphics,javafx.base"
     }
   ]
 }

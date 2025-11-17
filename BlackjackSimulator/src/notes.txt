@@ -2,13 +2,6 @@
 
 - Finalize layout:
 	- Add more style to buttons
-	- Add 4 buttons next to deal. 1/2x, 2x, 3x, 4x
-		- 1/2x, 2x, 3x, 4x should just multiply the current custom bet
-
-	- Add slider that changes custom bet input amount (still allow typing in custom bet)
-		- loweset they can slide to is min bet. max is all the money they have, reset this after each round
-		- the slide increments by the min bet (ie 25->50->75)
-		- look at the screenshot for idea.
 
 	- Add buttons in the side bet pop up to quickly select values, clicking the button will add the money, so you could hit $1 twice to get $2
 		- remove(0), $1, $5, $10, $25
