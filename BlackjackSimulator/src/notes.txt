@@ -1,4 +1,4 @@
-- Add checkbox to toggle hide/show true/running count;
+- Need a settings dialog for toggle button and change speed. Put er top right?!
 
 - Finalize layout:
 	- Add more style to buttons
