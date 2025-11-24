@@ -6,8 +6,6 @@
 	- Add buttons in the side bet pop up to quickly select values, clicking the button will add the money, so you could hit $1 twice to get $2
 		- remove(0), $1, $5, $10, $25
 
-	- Move money to be underneath the betting section
-	
 - Implement training mode with a checkbox toggle to enable/disable.
 	- If you make an unoptimal play, it will pop up telling you:
 		- The play you made was unoptimal. It will explain why.

@@ -113,8 +113,10 @@ public class GUI extends Application implements GameStateListener {
         // money display
         moneyLabel = new Label("Money: $" + playerMoney);
         moneyLabel.setStyle("-fx-font-size: 24px; -fx-text-fill: white; -fx-font-weight: bold;");
-        moneyLabel.setLayoutX(20);
-        moneyLabel.setLayoutY(20);
+        moneyLabel.setLayoutX(WINDOW_WIDTH / 2 + 92);
+        moneyLabel.setLayoutY(WINDOW_HEIGHT - 130);
+
+
         root.getChildren().add(moneyLabel);
 
         // speed button
@@ -154,9 +156,8 @@ public class GUI extends Application implements GameStateListener {
         // deck info display
         Label deckInfoLabel = new Label("Deck: " + numDecks + " decks, " +
                 cardsRemaining + " cards");
-        deckInfoLabel.setStyle("-fx-font-size: 18px; -fx-text-fill: white;");
-        deckInfoLabel.setLayoutX(20);
-        deckInfoLabel.setLayoutY(50);
+        deckInfoLabel.setStyle("-fx-font-size: 24px; -fx-text-fill: white; -fx-font-weight: bold;");        deckInfoLabel.setLayoutX(20);
+        deckInfoLabel.setLayoutY(20);
         root.getChildren().add(deckInfoLabel);
 
         // message label
@@ -571,6 +572,7 @@ public class GUI extends Application implements GameStateListener {
         threeXButton.setVisible(false);
         fourXButton.setVisible(false);
         moneySlider.setVisible(false);
+        moneyLabel.setVisible(false);
         if (hideBetMessage) {
             betMessageLabel.setVisible(false);
         }
@@ -755,6 +757,7 @@ public class GUI extends Application implements GameStateListener {
             threeXButton.setVisible(true);
             fourXButton.setVisible(true);
             moneySlider.setVisible(true);
+            moneyLabel.setVisible(true);
         }
 
         if ((gameController.isPairBetPlaced() || gameController.is21Plus3BetPlaced())
