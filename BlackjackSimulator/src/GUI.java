@@ -45,6 +45,8 @@ public class GUI extends Application implements GameStateListener {
     private Button fourXButton;
     private CheckBox countCheckBox;
     private boolean toggleCount = true;
+    private Label trueCountLabel;
+   private Label runningCountLabel; 
 
     private double WINDOW_WIDTH;
     private double WINDOW_HEIGHT;
@@ -54,6 +56,8 @@ public class GUI extends Application implements GameStateListener {
     private boolean handsSplit = false;
     private boolean hideBetMessage = false;
     private boolean updatingSlider = false;
+    private boolean showRunningCount = true;
+    private boolean showTrueCount = true;
 
     private GUIEventListener gameEventListener;
 
@@ -129,18 +133,36 @@ public class GUI extends Application implements GameStateListener {
         speedButton.setLayoutY(20);
         root.getChildren().add(speedButton);
 
-        // running count
+        // running + true count
         countLabel = new Label("Count: " + runningCount + " (" + String.format("%.2f", trueCount) + ")");
         countLabel.setStyle("-fx-font-size: 18px; -fx-text-fill: white;");
         countLabel.setLayoutX(WINDOW_WIDTH - 200);
         countLabel.setLayoutY(100);
         root.getChildren().add(countLabel);
         
+
+        // true count 
+
+        trueCountLabel = new Label("True Count: " + trueCount);
+        trueCountLabel.setStyle("-fx-font-size: 18px; -fx-text-fill: white;");
+        trueCountLabel.setLayoutX(WINDOW_WIDTH - 200);
+        trueCountLabel.setLayoutY(120);
+        root.getChildren().add(trueCountLabel);
+
+
+        // running Count
+        runningCountLabel = new Label("Runnig Count: " + runningCount);
+        runningCountLabel.setStyle("-fx-font-size: 18px; -fx-text-fill: white;");
+        runningCountLabel.setLayoutX(WINDOW_WIDTH - 200);
+        runningCountLabel.setLayoutY(140);
+        root.getChildren().add(runningCountLabel); 
+
+
         countCheckBox = new CheckBox("Toggle Count");
         countCheckBox.setStyle("-fx-font-size: 14px; -fx-text-fill: white;"); 
         countCheckBox.setSelected(toggleCount);
         countCheckBox.setLayoutX(WINDOW_WIDTH - 200);
-        countCheckBox.setLayoutY(120);
+        countCheckBox.setLayoutY(160);
         countCheckBox.setOnAction((event) -> {
              toggleCount = countCheckBox.isSelected();
             if(!toggleCount){
@@ -814,9 +836,21 @@ public class GUI extends Application implements GameStateListener {
     }
 
     private void updateCountDisplay() {
-        // update the count display if implemented
-        countLabel.setText("Count: " + gameController.getRunningCount() + " ("
+        if(showRunningCount == true && showTrueCount == true){
+            // update the count display if implemented
+            countLabel.setText("Count: " + gameController.getRunningCount() + " ("
                 + String.format("%.2f", gameController.getTrueCount()) + ")");
+        }
+        else if( showRunningCount)
+    {
+            runningCountLabel.setText("Running count: " + gameController.getRunningCount());
+
+        }
+        else if(showTrueCount){
+
+            trueCountLabel.setText("True count: " + String.format("%.2f", gameController.getTrueCount()));
+        }
+
     }
 
     private void displaySingleHand() {
