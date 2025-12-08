@@ -167,20 +167,22 @@ public class GUI extends Application implements GameStateListener {
         deckInfoLabel.setLayoutY(20);
         root.getChildren().add(deckInfoLabel);
 
+        VBox messageVbox = new VBox(2);
+        messageVbox.setLayoutX(200);
+        messageVbox.setLayoutY(WINDOW_HEIGHT - 150);
+
         // message label
         messageLabel = new Label("");
         messageLabel.setStyle("-fx-font-size: 18px; -fx-text-fill: yellow; -fx-font-weight: bold;");
-        messageLabel.setLayoutX(200);
-        messageLabel.setLayoutY(WINDOW_HEIGHT - 150);
         messageLabel.setVisible(false);
-        root.getChildren().add(messageLabel);
+
 
         betMessageLabel = new Label("");
         betMessageLabel.setStyle("-fx-font-size: 18px; -fx-text-fill: orange; -fx-font-weight: bold;");
-        betMessageLabel.setLayoutX(200);
-        betMessageLabel.setLayoutY(WINDOW_HEIGHT - 120);
         betMessageLabel.setVisible(false);
-        root.getChildren().add(betMessageLabel);
+        messageVbox.getChildren().addAll(messageLabel, betMessageLabel);
+
+        root.getChildren().add(messageVbox);
 
         // dealer section
         setupDealerArea();
