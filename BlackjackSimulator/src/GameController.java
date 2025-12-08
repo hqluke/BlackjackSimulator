@@ -72,6 +72,10 @@ public class GameController implements GUIEventListener {
             game.startRound(betAmount);
         }
     }
+
+    public int getCardsRemaining() {
+        return game.getDeck().getCardsRemaining();
+    }
     
     public void hit(int handIndex) {
         if (game != null) {

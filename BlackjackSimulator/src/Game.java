@@ -46,9 +46,15 @@ public class Game {
       return;
     }
 
-    if (!player.canAfford(betAmount)) {
-      notifyError("Insufficient funds");
-      return;
+    // Check if player can afford main bet + side bets
+    double totalNeeded = betAmount;
+    if (isPairBetPlaced || is21Plus3BetPlaced) {
+        totalNeeded += pairBetAmount + twentyOnePlusThreeBetAmount;
+    }
+
+    if (!player.canAfford(totalNeeded)) {
+        notifyError("Insufficient funds for bet and side bets");
+        return;
     }
 
     // clear previous round
@@ -62,33 +68,20 @@ public class Game {
 
     roundInProgress = true;
 
-    if (areSideBetsRemembered()) {
-      if (!player.canAfford(pairBetAmount + twentyOnePlusThreeBetAmount)) {
-        pairBetAmount = 0;
-        twentyOnePlusThreeBetAmount = 0;
-        isPairBetPlaced = false;
-        is21Plus3BetPlaced = false;
-        if (listener != null) {
-          listener.onBetMessage("Not enough money for remembered sidebets, sidebets removed.", false);
+    // Place side bets on the Bet object if they were set before round started (only on hand 0)
+    if (isPairBetPlaced || is21Plus3BetPlaced) {
+        Bet bet = player.getBet(0);
+        if (pairBetAmount > 0) {
+            player.placePairBet(pairBetAmount, 0);
         }
-
-      }
-      onSideBetsPlaced(pairBetAmount, twentyOnePlusThreeBetAmount, 0, true);
-    } else if (isPairBetPlaced || is21Plus3BetPlaced) {
-      if (!player.canAfford(pairBetAmount + twentyOnePlusThreeBetAmount)) {
-        pairBetAmount = 0;
-        twentyOnePlusThreeBetAmount = 0;
-        if (listener != null) {
-          listener.onBetMessage("Not enough money for remembered sidebets, sidebets removed.", false);
+        if (twentyOnePlusThreeBetAmount > 0) {
+            player.placeTwentyOnePlusThreeBet(twentyOnePlusThreeBetAmount, 0);
         }
-
-      }
-      onSideBetsPlaced(pairBetAmount, twentyOnePlusThreeBetAmount, 0, false);
-    } else {
-      this.pairBetAmount = 0.0;
-      this.twentyOnePlusThreeBetAmount = 0.0;
-      this.isPairBetPlaced = false;
-      this.is21Plus3BetPlaced = false;
+        
+        // Update money display after side bets are placed
+        if (listener != null) {
+            listener.onMoneyChanged(player.getMoney());
+        }
     }
 
     setBlockAccessToSideBets(false);
@@ -462,6 +455,13 @@ public class Game {
       }
     }
 
+    if (!areSideBetsRemembered) {
+        isPairBetPlaced = false;
+        is21Plus3BetPlaced = false;
+        pairBetAmount = 0.0;
+        twentyOnePlusThreeBetAmount = 0.0;
+    }
+
     if (listener != null) {
       listener.onMoneyChanged(player.getMoney());
     }
@@ -526,53 +526,20 @@ public class Game {
   }
 
   public void onSideBetsPlaced(double pairAmount, double twentyOnePlusThreeAmount, int index,
-      boolean areSideBetsRemembered) {
+        boolean areSideBetsRemembered) {
 
-    this.pairBetAmount = pairAmount;
-    this.twentyOnePlusThreeBetAmount = twentyOnePlusThreeAmount;
-    this.isPairBetPlaced = pairAmount > 0;
-    this.is21Plus3BetPlaced = twentyOnePlusThreeAmount > 0;
-
-    setAreSideBetsRemembered(areSideBetsRemembered);
-    setBlockAccessToSideBets(true);
-
-    if (roundInProgress) {
-      onPairBet(pairAmount, index);
-      on21Plus3Bet(twentyOnePlusThreeAmount, index);
-    }
-  }
-
-  private void onPairBet(double pairAmount, int index) {
-    if (pairAmount <= 0) {
-      return;
-    }
-    if (index == 0) {
-      player.placePairBet(pairAmount, index);
-      // GUI updates money display
-      if (listener != null) {
-        listener.onMoneyChanged(player.getMoney());
+      // Only allow side bets on hand 0
+      if (index != 0) {
+          return;
       }
-
+      // Just store the amounts - actual deduction happens in startRound
       this.pairBetAmount = pairAmount;
-      this.isPairBetPlaced = true;
-    }
-  }
-
-  private void on21Plus3Bet(double twentyOnePlusThreeAmount, int index) {
-    if (twentyOnePlusThreeAmount <= 0) {
-      return;
-    }
-    if (index == 0) {
-      player.placeTwentyOnePlusThreeBet(twentyOnePlusThreeAmount, index);
-      // GUI updates money display
-      if (listener != null) {
-        listener.onMoneyChanged(player.getMoney());
-      }
-
       this.twentyOnePlusThreeBetAmount = twentyOnePlusThreeAmount;
-      this.is21Plus3BetPlaced = true;
+      this.isPairBetPlaced = pairAmount > 0;
+      this.is21Plus3BetPlaced = twentyOnePlusThreeAmount > 0;
 
-    }
+      setAreSideBetsRemembered(areSideBetsRemembered);
+      setBlockAccessToSideBets(true);
   }
 
   public void setCustomBetAmount(int amount) {

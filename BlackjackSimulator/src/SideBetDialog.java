@@ -24,7 +24,7 @@ public class SideBetDialog {
     private static double saved21Plus3Amount = 0;
     private static boolean hasSavedBets = false;
 
-    public static void show(double playerMoney, java.util.function.Consumer<SideBetResult> onComplete) {
+    public static void show(double playerMoney, double minimumBet, java.util.function.Consumer<SideBetResult> onComplete) {
         Dialog<ButtonType> dialog = new Dialog<>();
         dialog.setTitle("Side Bet Options");
         dialog.setHeaderText("Place Optional Side Bets");
@@ -132,6 +132,13 @@ public class SideBetDialog {
                 // Check if player has enough money
                 if (totalBet > playerMoney) {
                     showError(String.format("Insufficient funds! You only have $%.2f available.", playerMoney));
+                    event.consume();
+                    return;
+                }
+
+                // Check if player has enough money left for a minimum bet after side bets
+                if (totalBet > 0 && (playerMoney - totalBet) < minimumBet) {
+                    showError(String.format("You must have at least $%.0f remaining after side bets to place a main bet.", minimumBet));
                     event.consume();
                     return;
                 }

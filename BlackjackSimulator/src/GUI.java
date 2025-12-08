@@ -1,6 +1,5 @@
 import javafx.application.Application;
 import javafx.scene.Scene;
-import javafx.scene.control.Slider;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
 import javafx.stage.Stage;
@@ -37,16 +36,16 @@ public class GUI extends Application implements GameStateListener {
     private Button standButton;
     private Button doubleButton;
     private Button splitButton;
-    private Button speedButton;
+    private Button settingsButton;
     private Slider moneySlider;
     private Button halfButton;
     private Button twoXButton;
     private Button threeXButton;
     private Button fourXButton;
-    private CheckBox countCheckBox;
-    private boolean toggleCount = true;
+    private boolean toggleCount = false;
     private Label trueCountLabel;
-   private Label runningCountLabel; 
+    private Label runningCountLabel;
+    private Button playAgainButton; 
 
     private double WINDOW_WIDTH;
     private double WINDOW_HEIGHT;
@@ -56,8 +55,10 @@ public class GUI extends Application implements GameStateListener {
     private boolean handsSplit = false;
     private boolean hideBetMessage = false;
     private boolean updatingSlider = false;
-    private boolean showRunningCount = true;
-    private boolean showTrueCount = true;
+    private boolean showRunningCount = false;
+    private boolean showTrueCount = false;
+    private int minBetInt = 0;
+    private double availableMoneyForBetting = 0;
 
     private GUIEventListener gameEventListener;
 
@@ -124,20 +125,20 @@ public class GUI extends Application implements GameStateListener {
         root.getChildren().add(moneyLabel);
 
         // speed button
-        speedButton = new Button("Change\nSpeed");
-        speedButton.setPrefWidth(120);
-        speedButton.setPrefHeight(70);
-        speedButton.setStyle("-fx-font-size: 18px; -fx-padding: 10px 10px; -fx-font-weight: bold;");
-        speedButton.setOnAction(e -> handleSpeedChange());
-        speedButton.setLayoutX(WINDOW_WIDTH - 150);
-        speedButton.setLayoutY(20);
-        root.getChildren().add(speedButton);
+        settingsButton = new Button("Settings");
+        settingsButton.setPrefWidth(120);
+        settingsButton.setPrefHeight(50);
+        settingsButton.setStyle("-fx-font-size: 16px; -fx-padding: 10px 10px; -fx-font-weight: bold;");
+        settingsButton.setOnAction(e -> handleSettings());
+        settingsButton.setLayoutX(WINDOW_WIDTH - 200);
+        settingsButton.setLayoutY(WINDOW_HEIGHT - 70);
+        root.getChildren().add(settingsButton);
 
         // running + true count
         countLabel = new Label("Count: " + runningCount + " (" + String.format("%.2f", trueCount) + ")");
         countLabel.setStyle("-fx-font-size: 18px; -fx-text-fill: white;");
         countLabel.setLayoutX(WINDOW_WIDTH - 200);
-        countLabel.setLayoutY(100);
+        countLabel.setLayoutY(WINDOW_HEIGHT - 100);;
         root.getChildren().add(countLabel);
         
 
@@ -146,7 +147,7 @@ public class GUI extends Application implements GameStateListener {
         trueCountLabel = new Label("True Count: " + trueCount);
         trueCountLabel.setStyle("-fx-font-size: 18px; -fx-text-fill: white;");
         trueCountLabel.setLayoutX(WINDOW_WIDTH - 200);
-        trueCountLabel.setLayoutY(120);
+        trueCountLabel.setLayoutY(WINDOW_HEIGHT - 120);
         root.getChildren().add(trueCountLabel);
 
 
@@ -154,26 +155,10 @@ public class GUI extends Application implements GameStateListener {
         runningCountLabel = new Label("Runnig Count: " + runningCount);
         runningCountLabel.setStyle("-fx-font-size: 18px; -fx-text-fill: white;");
         runningCountLabel.setLayoutX(WINDOW_WIDTH - 200);
-        runningCountLabel.setLayoutY(140);
+        runningCountLabel.setLayoutY(WINDOW_HEIGHT - 140);
         root.getChildren().add(runningCountLabel); 
 
-
-        countCheckBox = new CheckBox("Toggle Count");
-        countCheckBox.setStyle("-fx-font-size: 14px; -fx-text-fill: white;"); 
-        countCheckBox.setSelected(toggleCount);
-        countCheckBox.setLayoutX(WINDOW_WIDTH - 200);
-        countCheckBox.setLayoutY(160);
-        countCheckBox.setOnAction((event) -> {
-             toggleCount = countCheckBox.isSelected();
-            if(!toggleCount){
-                countLabel.setVisible(false);
-            }
-            else{
-                countLabel.setVisible(true);
-            }
-        }); 
-        root.getChildren().add(countCheckBox);
-
+        updateCountLabelsVisibility(); 
 
         // deck info display
         Label deckInfoLabel = new Label("Deck: " + numDecks + " decks, " +
@@ -208,10 +193,25 @@ public class GUI extends Application implements GameStateListener {
         // action buttons
         setupActionButtons();
 
+        // play again button
+        setupPlayAgainButton();
+
         // deck visual
         cardAnimation = new CardAnimation(root, (WINDOW_WIDTH + 400) / 2, (DEALER_Y - 150), this);
         deck = cardAnimation.createDeck();
         root.getChildren().add(deck);
+    }
+
+    private void setupPlayAgainButton() {
+        playAgainButton = new Button("Play Again?");
+        playAgainButton.setPrefWidth(200);
+        playAgainButton.setPrefHeight(60);
+        playAgainButton.setStyle("-fx-font-size: 20px; -fx-font-weight: bold; -fx-background-color: #4CAF50; -fx-text-fill: white;");
+        playAgainButton.setLayoutX((WINDOW_WIDTH - 200) / 2);
+        playAgainButton.setLayoutY((WINDOW_HEIGHT - 60) / 2);
+        playAgainButton.setVisible(false);
+        playAgainButton.setOnAction(e -> handlePlayAgain());
+        root.getChildren().add(playAgainButton);
     }
 
     private void setupDealerArea() {
@@ -282,7 +282,7 @@ public class GUI extends Application implements GameStateListener {
         dealButton.setStyle("-fx-font-size: 18px; -fx-font-weight: bold;");
         dealButton.setOnAction(e -> handleDeal());
 
-        int minBetInt = (int) minimumBet;
+        minBetInt = (int) minimumBet;
         int moneyInt = (int) playerMoney;
 
         // Create multiplier buttons
@@ -301,8 +301,8 @@ public class GUI extends Application implements GameStateListener {
         halfButton.setOnAction(e -> {
             int currentBet = Integer.parseInt(betField.getText());
             int newBet = Math.max(minBetInt, currentBet / 2);
-            int playerMoneyNow = (int) gameController.getPlayer().getMoney();
-            newBet = Math.min(newBet, playerMoneyNow);
+            double playerMoneyNow = availableMoneyForBetting > 0 ? availableMoneyForBetting : gameController.getPlayer().getMoney();
+            newBet = Math.min(newBet, (int) playerMoneyNow);
             betField.setText(String.valueOf(newBet));
             moneySlider.setValue(newBet);
         });
@@ -310,8 +310,8 @@ public class GUI extends Application implements GameStateListener {
         twoXButton.setOnAction(e -> {
             int currentBet = Integer.parseInt(betField.getText());
             int newBet = currentBet * 2;
-            int playerMoneyNow = (int) gameController.getPlayer().getMoney();
-            newBet = Math.min(newBet, playerMoneyNow);
+            double playerMoneyNow = availableMoneyForBetting > 0 ? availableMoneyForBetting : gameController.getPlayer().getMoney();
+            newBet = Math.min(newBet, (int) playerMoneyNow);
             betField.setText(String.valueOf(newBet));
             moneySlider.setValue(newBet);
         });
@@ -319,8 +319,8 @@ public class GUI extends Application implements GameStateListener {
         threeXButton.setOnAction(e -> {
             int currentBet = Integer.parseInt(betField.getText());
             int newBet = currentBet * 3;
-            int playerMoneyNow = (int) gameController.getPlayer().getMoney();
-            newBet = Math.min(newBet, playerMoneyNow);
+            double playerMoneyNow = availableMoneyForBetting > 0 ? availableMoneyForBetting : gameController.getPlayer().getMoney();
+            newBet = Math.min(newBet, (int) playerMoneyNow);
             betField.setText(String.valueOf(newBet));
             moneySlider.setValue(newBet);
         });
@@ -328,8 +328,8 @@ public class GUI extends Application implements GameStateListener {
         fourXButton.setOnAction(e -> {
             int currentBet = Integer.parseInt(betField.getText());
             int newBet = currentBet * 4;
-            int playerMoneyNow = (int) gameController.getPlayer().getMoney();
-            newBet = Math.min(newBet, playerMoneyNow);
+            double playerMoneyNow = availableMoneyForBetting > 0 ? availableMoneyForBetting : gameController.getPlayer().getMoney();
+            newBet = Math.min(newBet, (int) playerMoneyNow);
             betField.setText(String.valueOf(newBet));
             moneySlider.setValue(newBet);
         });
@@ -352,7 +352,7 @@ public class GUI extends Application implements GameStateListener {
             updatingSlider = true;
 
             int snappedValue = newVal.intValue();
-            double playerMoneyNow = gameController.getPlayer().getMoney();
+            double playerMoneyNow = availableMoneyForBetting > 0 ? availableMoneyForBetting : gameController.getPlayer().getMoney();
 
             if (snappedValue > playerMoneyNow) {
                 snappedValue = (int) playerMoneyNow;
@@ -389,7 +389,7 @@ public class GUI extends Application implements GameStateListener {
             } else if (!newValue.isEmpty()) {
                 try {
                     int value = Integer.parseInt(newValue);
-                    double playerMoneyNow = gameController.getPlayer().getMoney();
+                    double playerMoneyNow = availableMoneyForBetting > 0 ? availableMoneyForBetting : gameController.getPlayer().getMoney();
                     if (value > playerMoneyNow) {
                         betField.setText(String.valueOf((int) playerMoneyNow));
                         moneySlider.setValue((int) playerMoneyNow);
@@ -537,15 +537,74 @@ public class GUI extends Application implements GameStateListener {
 
     // event handlers
     private void handleSideBets() {
-        SideBetDialog.show(gameController.getPlayer().getMoney(), result -> {
+        SideBetDialog.show(gameController.getPlayer().getMoney(), minBetInt, result -> {
             if (result != null) {
                 double totalSideBets = result.perfectPairAmount + result.twentyOnePlusThreeAmount;
-                if (totalSideBets > 0) {
-                    showMessage(String.format("Side bets placed: Perfect Pair $%.0f, 21+3 $%.0f",
-                            result.perfectPairAmount, result.twentyOnePlusThreeAmount));
 
-                    gameController.onSideBetsPlaced(result.perfectPairAmount, result.twentyOnePlusThreeAmount,
-                            result.saveForNextRounds);
+                gameController.onSideBetsPlaced(result.perfectPairAmount, result.twentyOnePlusThreeAmount,
+                        result.saveForNextRounds);
+                
+                if (totalSideBets > 0) {
+                    showMessage(String.format("Side bets placed: Perfect Pair $%.0f, 21+3 $%.0f (Total: $%.0f)",
+                            result.perfectPairAmount, result.twentyOnePlusThreeAmount, totalSideBets));
+                }
+                
+                // Update available money based on whether side bets are remembered
+                if (gameController.areSideBetsRemembered() && totalSideBets > 0) {
+                    // Side bets are remembered - reserve this money
+                    availableMoneyForBetting = gameController.getPlayer().getMoney() - totalSideBets;
+                    
+                    // Show full money in label (side bets haven't been deducted yet)
+                    moneyLabel.setText(String.format("Money: $%.2f", gameController.getPlayer().getMoney()));
+                    
+                    // But limit betting to money minus side bets
+                    updatingSlider = true;
+                    moneySlider.setMax(availableMoneyForBetting);
+                    
+                    // Update slider value if current bet exceeds available money
+                    if (moneySlider.getValue() > availableMoneyForBetting) {
+                        int newBet = (int) Math.max(minBetInt, availableMoneyForBetting);
+                        moneySlider.setValue(newBet);
+                        betField.setText(String.valueOf(newBet));
+                    }
+                    updatingSlider = false;
+                } else if (!gameController.areSideBetsRemembered() && totalSideBets > 0) {
+                    // Side bets are NOT remembered - deduct immediately for display
+                    availableMoneyForBetting = gameController.getPlayer().getMoney() - totalSideBets;
+                    
+                    // Update display to show money after side bets
+                    moneyLabel.setText(String.format("Money: $%.2f", availableMoneyForBetting));
+                    
+                    // Update slider
+                    updatingSlider = true;
+                    moneySlider.setMax(availableMoneyForBetting);
+                    
+                    if (moneySlider.getValue() > availableMoneyForBetting) {
+                        int newBet = (int) Math.max(minBetInt, availableMoneyForBetting);
+                        moneySlider.setValue(newBet);
+                        betField.setText(String.valueOf(newBet));
+                    }
+                    updatingSlider = false;
+                } else {
+                    // No side bets placed (totalSideBets == 0) - restore full money access
+                    availableMoneyForBetting = 0; // Reset to use full player money
+                    
+                    double fullMoney = gameController.getPlayer().getMoney();
+                    moneyLabel.setText(String.format("Money: $%.2f", fullMoney));
+                    
+                    // Update slider to show full money available
+                    updatingSlider = true;
+                    moneySlider.setMax(fullMoney);
+                    
+                    // Restore bet field if it was limited before
+                    int currentBet = Integer.parseInt(betField.getText());
+                    if (currentBet > fullMoney) {
+                        betField.setText(String.valueOf((int) fullMoney));
+                        moneySlider.setValue((int) fullMoney);
+                    } else {
+                        moneySlider.setValue(currentBet);
+                    }
+                    updatingSlider = false;
                 }
             }
         });
@@ -573,12 +632,36 @@ public class GUI extends Application implements GameStateListener {
         }
     }
 
-    private void handleSpeedChange() {
-        Integer newSpeed = SpeedDialog.show();
-        if (newSpeed != null) {
-            cardAnimation.setAnimationSpeed(newSpeed);
+    private void handleSettings() {
+        SettingsDialog.SettingsResult result = SettingsDialog.show(
+            cardAnimation.getAnimationSpeed(),
+            showRunningCount,
+            showTrueCount,
+            toggleCount
+        );
+        
+        if (result != null) {
+            // Update animation speed
+            cardAnimation.setAnimationSpeed(result.animationSpeed);
+            
+            // Update count display preferences
+            showRunningCount = result.showRunningCount;
+            showTrueCount = result.showTrueCount;
+            toggleCount = result.showCombinedCount;
+            
+            // Update visibility of count labels
+            updateCountLabelsVisibility();
+            
+            // Refresh the count display
+            updateCountDisplay();
         }
     }
+
+    private void updateCountLabelsVisibility() {
+        runningCountLabel.setVisible(showRunningCount);
+        trueCountLabel.setVisible(showTrueCount);
+        countLabel.setVisible(toggleCount);
+    } 
 
     // GameStateListener implementations
     @Override
@@ -754,7 +837,16 @@ public class GUI extends Application implements GameStateListener {
         showRoundResults(bets);
         setActionButtonsVisible(false);
         updateMoneyDisplay();
-        int totalMoney = (int) gameController.getPlayer().getMoney();
+
+        // Calculate available money (subtract side bets if they're remembered)
+        double sideBetTotal = 0;
+        if (gameController.areSideBetsRemembered() && 
+            (gameController.isPairBetPlaced() || gameController.is21Plus3BetPlaced())) {
+            sideBetTotal = gameController.getPairBetAmount() + gameController.getTwentyOnePlusThreeBetAmount();
+        }
+        
+        availableMoneyForBetting = gameController.getPlayer().getMoney() - sideBetTotal;
+        int totalMoney = (int) availableMoneyForBetting;
         int customMoney = gameController.getCustomBetAmount();
 
         moneySlider.setMax(totalMoney);
@@ -769,6 +861,7 @@ public class GUI extends Application implements GameStateListener {
             showMessage("Game Over! Out of money.");
             dealButton.setDisable(true);
             sideBetButton.setDisable(true);
+            playAgainButton.setVisible(true);
         } else {
             dealButton.setVisible(true);
             sideBetButton.setVisible(true);
@@ -780,6 +873,7 @@ public class GUI extends Application implements GameStateListener {
             fourXButton.setVisible(true);
             moneySlider.setVisible(true);
             moneyLabel.setVisible(true);
+            playAgainButton.setVisible(false);
         }
 
         if ((gameController.isPairBetPlaced() || gameController.is21Plus3BetPlaced())
@@ -791,6 +885,68 @@ public class GUI extends Application implements GameStateListener {
             showBetMessage(String.format("You won $%.2f from side bets!", sideBetWinTotal));
             sideBetWinTotal = 0;
         }
+    }
+
+    private void handlePlayAgain() {
+        // Show setup dialog again
+        SetupDialog.GameConfig config = SetupDialog.show();
+        
+        // Clear the current game state
+        root.getChildren().clear();
+        
+        // Reset all state variables
+        sideBetWinTotal = 0;
+        handsSplit = false;
+        hideBetMessage = false;
+        updatingSlider = false;
+        availableMoneyForBetting = 0;
+        
+        // IMPORTANT: Reset all UI component references to null
+        deck = null;
+        dealerCards = null;
+        playerCards = null;
+        playerValueLabel = null;
+        dealerValueLabel = null;
+        moneyLabel = null;
+        messageLabel = null;
+        betMessageLabel = null;
+        betLabel = null;
+        countLabel = null;
+        betField = null;
+        dealButton = null;
+        sideBetButton = null;
+        hitButton = null;
+        standButton = null;
+        doubleButton = null;
+        splitButton = null;
+        settingsButton = null;
+        moneySlider = null;
+        halfButton = null;
+        twoXButton = null;
+        threeXButton = null;
+        fourXButton = null;
+        trueCountLabel = null;
+        runningCountLabel = null;
+        playAgainButton = null;
+        
+        // Clear saved side bets
+        SideBetDialog.clearSavedBets();
+        
+        // Reinitialize the game with new config
+        gameController = new GameController(this);
+        gameEventListener = gameController;
+        
+        gameController.onCreateGameRequested(
+                config.numDecks,
+                config.startingMoney,
+                config.minimumBet);
+        
+        // Create new CardAnimation instance BEFORE calling setupUI
+        cardAnimation = new CardAnimation(root, (WINDOW_WIDTH + 400) / 2, (DEALER_Y - 150), this);
+        cardAnimation.setAnimationSpeed(config.animationSpeed);
+        
+        // Rebuild the UI - this will be called by onGameCreated
+        // The onGameCreated callback will trigger setupUI which recreates everything
     }
 
     @Override
@@ -836,21 +992,18 @@ public class GUI extends Application implements GameStateListener {
     }
 
     private void updateCountDisplay() {
-        if(showRunningCount == true && showTrueCount == true){
-            // update the count display if implemented
-            countLabel.setText("Count: " + gameController.getRunningCount() + " ("
-                + String.format("%.2f", gameController.getTrueCount()) + ")");
+        if (showRunningCount) {
+            runningCountLabel.setText("Running Count: " + gameController.getRunningCount());
         }
-        else if( showRunningCount)
-    {
-            runningCountLabel.setText("Running count: " + gameController.getRunningCount());
-
+        
+        if (showTrueCount) {
+            trueCountLabel.setText("True Count: " + String.format("%.2f", gameController.getTrueCount()));
         }
-        else if(showTrueCount){
-
-            trueCountLabel.setText("True count: " + String.format("%.2f", gameController.getTrueCount()));
+        
+        if (toggleCount) {
+            countLabel.setText("Count: " + gameController.getRunningCount() + " (" +
+                String.format("%.2f", gameController.getTrueCount()) + ")");
         }
-
     }
 
     private void displaySingleHand() {
