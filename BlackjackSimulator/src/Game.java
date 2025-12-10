@@ -23,7 +23,7 @@ public class Game {
     this.minimumBet = minimumBet;
     this.deck = new Deck(numDecks);
     // TODO: comment out below to run normal deck
-    deck.createTestSplitDeck();
+    // deck.createTestSplitDeck();
     this.player = new Player(startingMoney);
     this.dealer = new Dealer();
     this.runningCount = 0;
@@ -91,9 +91,9 @@ public class Game {
     }
     // TODO:
     // check if deck needs reshuffling AFTER onRoundStart
-    // if (deck.getDecksRemaining() < numDecks * 0.25) {
-    //   reshuffleDeck();
-    // }
+    if (deck.getDecksRemaining() < numDecks * 0.25) {
+      reshuffleDeck();
+    }
 
     // deal initial cards
     dealInitialCards();
