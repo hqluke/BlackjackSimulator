@@ -1,3 +1,21 @@
 {
-    "java.debug.settings.onBuildFailureProceed": true
+    "java.debug.settings.onBuildFailureProceed": true,
+    "java.project.sourcePaths": ["src"],
+    "java.project.outputPath": "bin",
+    "java.configuration.runtimes": [
+        {
+            "name": "JavaSE-25",
+            "path": "/usr/lib/jvm/java-25-openjdk",
+            "default": true
+        }
+    ],
+    "java.project.referencedLibraries": [
+        "/home/luke/javaProjects/javafx-sdk-21.0.9/lib/javafx.base.jar",
+        "/home/luke/javaProjects/javafx-sdk-21.0.9/lib/javafx.controls.jar",
+        "/home/luke/javaProjects/javafx-sdk-21.0.9/lib/javafx.fxml.jar",
+        "/home/luke/javaProjects/javafx-sdk-21.0.9/lib/javafx.graphics.jar",
+        "/home/luke/javaProjects/javafx-sdk-21.0.9/lib/javafx.media.jar",
+        "/home/luke/javaProjects/javafx-sdk-21.0.9/lib/javafx.swing.jar",
+        "/home/luke/javaProjects/javafx-sdk-21.0.9/lib/javafx.web.jar"
+    ]
 }
