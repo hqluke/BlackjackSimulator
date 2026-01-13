@@ -71,7 +71,7 @@ A JavaFX-based Blackjack game simulator with a graphical interface. Play Blackja
    ```
    - The script will automatically detect your Java installation and start the game
 
-```
+
 ## Game Controls
 
 - **Deal**: Start a new hand
